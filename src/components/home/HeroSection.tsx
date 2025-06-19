@@ -25,6 +25,47 @@ const SplitText = ({ text, className, delay = 0 }) => {
   );
 };
 
+const SplitTextOutline = ({ text, className, delay = 0 }) => {
+  const [visibleChars, setVisibleChars] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const interval = setInterval(() => {
+        setVisibleChars(prev => {
+          if (prev >= text.length) {
+            clearInterval(interval);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 50);
+
+      return () => clearInterval(interval);
+    }, delay * 1000);
+
+    return () => clearTimeout(timer);
+  }, [text, delay]);
+
+  return (
+    <div className={className} style={{
+      WebkitTextStroke: '2px white',
+      WebkitTextFillColor: 'transparent',
+      color: 'transparent'
+    }}>
+      {text.split('').map((char, index) => (
+        <span
+          key={index}
+          className={`inline-block transition-opacity duration-300 ${
+            index < visibleChars ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          {char}
+        </span>
+      ))}
+    </div>
+  );
+};
+
 // Floating accent component
 const FloatingAccent = ({ x, y, delay, size = 4, color = 'bg-white' }) => (
   <motion.div
@@ -146,15 +187,15 @@ const HeroSection = () => {
               ></motion.div>
 
               {/* Title with enhanced reveal animation */}
-              <SplitText
-                text="Abclinic"
-                className="text-5xl md:text-8xl lg:text-9xl font-arista-regular mb-2 tracking-tighter"
+              <SplitTextOutline
+                text="abclinic"
+                className="text-5xl md:text-8xl lg:text-9xl font-arista-regular mb-2 tracking-normal"
                 delay={0.2}
               />
 
               {/* Enhanced subtitle with reveal animation */}
               <SplitText
-                text="Создай историю с нами."
+                text="cоздай историю"
                 className="text-xl md:text-4xl lg:text-5xl font-arista-extralight mb-8 text-white/90 tracking-wide"
                 delay={0.3}
               />
@@ -166,8 +207,10 @@ const HeroSection = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
               >
-                Мы сочетаем передовые технологии и премиальный сервис, чтобы каждый визит был
-                комфортным, а результат превосходил ожидания.
+abclinic.uz — это стоматология, вдохновлённая природой, где мы восстанавливаем зубы так, чтобы сохранить их естественную форму, цвет и биомеханику.
+В основе нашего подхода — уважение к природе, любовь к деталям и стремление к гармонии, заметное в каждом элементе: от цифровых технологий до эстетики интерьера.
+Мы продолжаем семейную традицию стоматологии в третьем поколении, объединяя опыт с новейшим оборудованием и минималистичным подходом, вдохновлённым философией Apple.
+Всё устроено просто и прозрачно, с любой формой оплаты — чтобы путь к новой улыбке был таким же комфортным, как результат.
               </motion.p>
 
               {/* Enhanced CTA Button group */}

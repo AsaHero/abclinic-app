@@ -108,7 +108,7 @@ const TimelineSection = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % timelineData.length);
-    }, 7000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);

@@ -125,8 +125,8 @@ const ServiceCard = ({ category, index }) => {
 // Enhanced service categories with more detailed information
 const serviceCategories: ServiceCategory[] = [
   {
-    id: 'hygiene',
-    title: 'Гигиена и профилактика',
+    id: 'consultation',
+    title: 'Консультация и диагностика',
     icon: (
       <svg
         width="40"
@@ -144,13 +144,12 @@ const serviceCategories: ServiceCategory[] = [
         />
       </svg>
     ),
-    description: 'Профессиональная чистка и комплексная профилактика заболеваний полости рта.',
-    services: ['«Check-up»', 'Отбеливание зубов', 'Комплексная гигиена'],
-    featured: true,
+    description: 'Проведение первичной консультации и диагностики состояния зубов.',
+    services: ['«Первичная консультация»', '«Диагностика зубов»'],
   },
   {
-    id: 'treatment',
-    title: 'Лечение зубов',
+    id: 'hygiene',
+    title: 'Гигиена и профилактика',
     icon: (
       <svg
         width="40"
@@ -168,13 +167,13 @@ const serviceCategories: ServiceCategory[] = [
         />
       </svg>
     ),
-    description:
-      'Современные методы лечения кариеса и восстановления зубов с применением новейших технологий.',
-    services: ['Лечение кариеса', 'Восстановление зубов', 'Лечение пульпита'],
+    description: 'Профессиональная чистка и поддерживающая гигиена зубов.',
+    services: ['«Профессиональная гигиена»', '«Поддерживающая гигиена»'],
+    featured: true,
   },
   {
-    id: 'surgery',
-    title: 'Хирургия',
+    id: 'restoration',
+    title: 'Лечение и восстановление',
     icon: (
       <svg
         width="40"
@@ -199,13 +198,13 @@ const serviceCategories: ServiceCategory[] = [
       </svg>
     ),
     description:
-      'Малоинвазивная хирургия и имплантация с использованием высокоточного оборудования.',
-    services: ['Установка имплантата', 'Пластика десны', 'Удаление зубов'],
+      'Стоматологическое лечение и восстановление формы и функции зубов с помощью непрямой и керамической реставрации.',
+    services: ['«Непрямая реставрация»', '«Керамическая реставрация»'],
     featured: true,
   },
   {
-    id: 'orthodontics',
-    title: 'Ортодонтия',
+    id: 'aesthetic',
+    title: 'Эстетическая стоматология',
     icon: (
       <svg
         width="40"
@@ -223,9 +222,8 @@ const serviceCategories: ServiceCategory[] = [
         />
       </svg>
     ),
-    description:
-      'Коррекция прикуса и исправление положения зубов с помощью современных брекет-систем и элайнеров.',
-    services: ['Брекет-системы', 'Элайнеры', 'Ретейнеры'],
+    description: 'Эстетические процедуры для создания гармоничной и привлекательной улыбки.',
+    services: ['Профессиональное отбеливание', 'Профессиональное отбеливание'],
   },
 ];
 

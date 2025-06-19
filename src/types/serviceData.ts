@@ -9,6 +9,7 @@ export interface PriceItem {
   detailedDescription?: string; // NEW: Added for extended descriptions
   duration?: string; // Optional duration for the service
   category: string;
+  categories?: string[]; // NEW: Added for multiple categories
   requiresConsultation?: boolean; // Flag to indicate if consultation is required before this service
   isSpecialOffer?: boolean; // Flag to indicate special offers
   includesConsultation?: boolean; // Flag to indicate if consultation is included in this service
@@ -59,12 +60,12 @@ export const serviceCategories: ServiceCategory[] = [
     description:
       'Современное восстановление зубов с использованием инновационных материалов и технологий. Мы специализируемся на минимально инвазивном подходе, сохраняя максимум здоровых тканей.',
   },
-  { id: 'endodontics', title: 'Эндодонтия', requiresConsultation: true },
   { id: 'surgery', title: 'Хирургия', requiresConsultation: true },
-  { id: 'orthopedics', title: 'Ортопедия', requiresConsultation: true },
-  { id: 'orthodontics', title: 'Ортодонтия', requiresConsultation: true },
   { id: 'aesthetic', title: 'Эстетическая стоматология', requiresConsultation: true },
-  { id: 'children', title: 'Детская стоматология', requiresConsultation: true },
+  // { id: 'endodontics', title: 'Эндодонтия', requiresConsultation: true },
+  // { id: 'orthopedics', title: 'Ортопедия', requiresConsultation: true },
+  // { id: 'orthodontics', title: 'Ортодонтия', requiresConsultation: true },
+  // { id: 'children', title: 'Детская стоматология', requiresConsultation: true },
 ];
 
 // First Step Package for new clients
@@ -80,6 +81,7 @@ export const firstStepPackage: PriceItem = {
   isSpecialOffer: true,
   includesConsultation: true,
   requiresConsultation: false,
+  categories: ['consultation', 'hygiene'],
 };
 
 // All services data with consultation requirements
@@ -661,7 +663,9 @@ export const getServicesByCategory = (categoryId: string): PriceItem[] => {
     return allServices;
   }
 
-  return allServices.filter((service) => service.category === categoryId);
+  return allServices.filter(
+    (service) => service.category === categoryId || service.categories?.includes(categoryId)
+  );
 };
 
 // Helper function to get popular services
@@ -671,7 +675,9 @@ export const getPopularServices = (categoryId: string): PriceItem[] => {
   }
 
   return allServices.filter(
-    (service) => service.popular === true && service.category === categoryId
+    (service) =>
+      service.popular === true &&
+      (service.category === categoryId || service.categories?.includes(categoryId))
   );
 };
 

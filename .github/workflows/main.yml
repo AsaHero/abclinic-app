@@ -63,9 +63,6 @@ jobs:
           # Ensure proper permissions
           chmod -R 755 dist/
 
-          # Create a tar of the dist directory
-          tar -czf dist.tar.gz dist/
-
           # Ensure the tar file is readable
           chmod 644 dist.tar.gz
 

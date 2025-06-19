@@ -6,8 +6,6 @@ import { TimelineEntry } from '../../types/timelineData';
 
 interface TimelineContentProps {
   entry: TimelineEntry;
-  onPrev: () => void;
-  onNext: () => void;
   isFirst: boolean;
   isLast: boolean;
   direction: number;
@@ -61,14 +59,7 @@ const DecorativeElement = ({ top, left, size = 1, delay = 0 }) => (
   </motion.div>
 );
 
-const TimelineContent: React.FC<TimelineContentProps> = ({
-  entry,
-  onPrev,
-  onNext,
-  isFirst,
-  isLast,
-  direction,
-}) => {
+const TimelineContent: React.FC<TimelineContentProps> = ({ entry, isFirst, isLast, direction }) => {
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Reset scroll position when content changes
@@ -141,8 +132,8 @@ const TimelineContent: React.FC<TimelineContentProps> = ({
             </motion.div>
 
             {/* Premium gradient overlays for depth and visual interest */}
-            <div className="absolute inset-0 bg-gradient-to-t from-primary-900/100 via-primary-900/70 to-primary-900/20" />
-            <div className="absolute inset-0 bg-gradient-to-r from-primary-900/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary-900/80 via-primary-900/40 to-primary-900/20" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary-900/40 to-transparent" />
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-primary-900/30" />
 
             {/* Decorative elements positioned strategically */}
@@ -160,16 +151,6 @@ const TimelineContent: React.FC<TimelineContentProps> = ({
           <div className="w-full p-6 md:p-10 lg:p-16">
             <div className="max-w-screen-lg mx-auto">
               <div className="space-y-6">
-                {/* Year tag with enhanced animation */}
-                <RevealText delay={0.1}>
-                  <div
-                    className="inline-block bg-white/10 backdrop-blur-sm text-white px-4 py-1.5 rounded-full
-                    text-sm tracking-wider font-medium mb-4 border border-white/5"
-                  >
-                    {entry.year}
-                  </div>
-                </RevealText>
-
                 {/* Title with premium typography */}
                 <RevealText delay={0.3}>
                   <h3 className="text-4xl md:text-6xl font-inter font-bold text-white tracking-tight">
@@ -195,40 +176,6 @@ const TimelineContent: React.FC<TimelineContentProps> = ({
             </div>
           </div>
         </div>
-
-        {/* Premium navigation controls */}
-        <motion.button
-          onClick={onPrev}
-          disabled={isFirst}
-          className={`absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center
-            rounded-full backdrop-blur-sm ${
-              isFirst
-                ? 'bg-black/20 text-white/30 cursor-not-allowed'
-                : 'bg-black/30 text-white hover:bg-white/20 group-hover:opacity-100 opacity-70'
-            } transition-all duration-300`}
-          aria-label="Previous slide"
-          whileHover={!isFirst ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.2)' } : {}}
-          whileTap={!isFirst ? { scale: 0.95 } : {}}
-        >
-          <ChevronLeft size={24} className="transition-transform group-hover:scale-110" />
-        </motion.button>
-
-        {/* Next button with enhanced interaction */}
-        <motion.button
-          onClick={onNext}
-          disabled={isLast}
-          className={`absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center
-            rounded-full backdrop-blur-sm ${
-              isLast
-                ? 'bg-black/20 text-white/30 cursor-not-allowed'
-                : 'bg-black/30 text-white hover:bg-white/20 group-hover:opacity-100 opacity-70'
-            } transition-all duration-300`}
-          aria-label="Next slide"
-          whileHover={!isLast ? { scale: 1.1, backgroundColor: 'rgba(255,255,255,0.2)' } : {}}
-          whileTap={!isLast ? { scale: 0.95 } : {}}
-        >
-          <ChevronRight size={24} className="transition-transform group-hover:scale-110" />
-        </motion.button>
       </div>
     </motion.div>
   );

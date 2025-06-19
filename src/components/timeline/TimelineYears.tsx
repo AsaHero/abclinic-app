@@ -96,7 +96,7 @@ const TimelineYears = ({ years, activeYear, onYearClick }: TimelineYearsProps) =
   useEffect(() => {
     const checkWidth = () => {
       // If we have enough space to show all years comfortably (120px per year including ticks)
-      const minWidthNeeded = years.length * 120;
+      const minWidthNeeded = years.length * (120 + 90);
       setUseFullWidth(window.innerWidth > minWidthNeeded);
     };
 
@@ -290,17 +290,6 @@ const TimelineYears = ({ years, activeYear, onYearClick }: TimelineYearsProps) =
                     >
                       {year}
                     </motion.span>
-
-                    {/* Premium active indicator dot */}
-                    <motion.div
-                      className="w-1.5 h-1.5 rounded-full bg-white mt-2"
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{
-                        scale: year === activeYear ? 1 : 0,
-                        opacity: year === activeYear ? 1 : 0,
-                      }}
-                      transition={{ duration: 0.3 }}
-                    />
                   </motion.button>
 
                   {/* Premium hover tooltip */}

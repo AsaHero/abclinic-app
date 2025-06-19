@@ -5,6 +5,7 @@ import HeroSection from '@/components/home/HeroSection';
 import TimelineSection from '@/components/home/TimelineSection';
 import VideoSection from '@/components/home/VideoSection';
 import ServicesSection from '@/components/home/ServicesSection';
+import PhotoGallerySection from '@/components/home/PhotoGallerySection';
 import InfoDocumentsSection from '@/components/home/InfoDocumentsSection';
 import ContactMapSection from '@/components/home/ContactMapSection';
 
@@ -39,6 +40,9 @@ const HomePage = () => {
 
       {/* Services Section */}
       <ServicesSection />
+
+      {/* Photo Gallery Section */}
+      <PhotoGallerySection />
 
       {/* Information Documents Section */}
       <InfoDocumentsSection />

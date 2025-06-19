@@ -29,7 +29,7 @@ const Timeline = ({ entries, activeIndex, setActiveIndex }: TimelineProps) => {
     setActiveIndex(selectedIndex);
 
     // Auto-scroll to timeline if needed
-    if (timelineRef.current && window.innerWidth < 768) {
+    if (timelineRef.current && window.innerWidth < 1680) {
       setIsAutoScrolling(true);
       timelineRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -92,8 +92,6 @@ const Timeline = ({ entries, activeIndex, setActiveIndex }: TimelineProps) => {
           <TimelineContent
             key={activeYear}
             entry={activeEntry}
-            onPrev={handlePrevious}
-            onNext={handleNext}
             isFirst={isFirst}
             isLast={isLast}
             direction={direction}

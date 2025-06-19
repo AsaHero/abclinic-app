@@ -5,21 +5,22 @@ import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 
 const VideoSection: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.3 });
 
   // Premium video controls
   const handlePlayToggle = () => {
+    console.log(videoRef.current);
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
       } else {
         videoRef.current.play();
       }
-      setIsPlaying(!isPlaying);
     }
+    setIsPlaying(!isPlaying);
   };
 
   const handleMuteToggle = () => {
@@ -112,7 +113,7 @@ const VideoSection: React.FC = () => {
           transition={{ duration: 0.7, delay: 0.3 }}
         >
           <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10">
-            {!isPlaying ? (
+            {!isPlaying && !videoRef.current ? (
               <>
                 {/* Premium thumbnail with subtle animation */}
                 <motion.div
@@ -127,7 +128,7 @@ const VideoSection: React.FC = () => {
                   }}
                 >
                   <img
-                    src="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?q=80&w=1200&auto=format&fit=crop"
+                    src="/images/tour.jpg"
                     alt="Dental clinic video thumbnail"
                     className="w-full h-full object-cover rounded-2xl brightness-[0.85]"
                   />
@@ -191,7 +192,7 @@ const VideoSection: React.FC = () => {
                     playsInline
                     loop
                   >
-                    <source src="/videos/clinic-tour.mp4" type="video/mp4" />
+                    <source src="/videos/tour.mp4" type="video/mp4" />
                     Your browser does not support HTML5 video.
                   </video>
 
