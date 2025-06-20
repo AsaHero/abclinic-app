@@ -60,13 +60,9 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
-          # Ensure proper permissions
           chmod -R 755 dist/
-
-          # Ensure the tar file is readable
-          chmod 644 dist.tar.gz
-
           tar -czf dist.tar.gz dist/
+          chmod 644 dist.tar.gz
 
           # Copy the tar to the server
           scp dist.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_PATH }}
