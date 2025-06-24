@@ -12,7 +12,7 @@ export const timelineData: TimelineEntry[] = [
     year: 1936,
     title: '1936 год',
     description: 'Начало пути. Первый Азимов в стоматологии. В 1936 году, сразу после окончания медтехникума, Исмоилжон Азимов стал единственным стоматологом посёлка Сырдарья, леча пациентов вручную на самодельной установке.',
-    image: '/images/timeline/1936.png', // Placeholder
+    image: '/images/timeline/1936.jpg', // Placeholder
   },
   {
     year: 2018,

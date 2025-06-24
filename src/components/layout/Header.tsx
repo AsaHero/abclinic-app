@@ -233,8 +233,38 @@ const Header = () => {
     setActiveSubmenu(null);
   }, [location]);
 
+  // Body scroll lock when mobile menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      // Store original overflow
+      const originalOverflow = document.body.style.overflow;
+      const originalPosition = document.body.style.position;
+
+      // Lock scroll
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${window.scrollY}px`;
+      document.body.style.width = '100%';
+
+      // Cleanup function
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.position = originalPosition;
+        document.body.style.top = '';
+        document.body.style.width = '';
+
+        // Restore scroll position
+        const scrollPosition = parseInt(document.body.style.top || '0') * -1;
+        window.scrollTo(0, scrollPosition);
+      };
+    }
+  }, [isMenuOpen]);
+
   // Premium scroll handling with performance optimizations
   const handleScroll = useCallback(() => {
+    // Don't handle scroll when mobile menu is open
+    if (isMenuOpen) return;
+
     const currentScrollY = window.scrollY;
 
     // Determine if header should hide or show based on scroll direction
@@ -248,7 +278,7 @@ const Header = () => {
     setIsScrolled(currentScrollY > 20);
 
     setScrollY(currentScrollY);
-  }, [scrollY]);
+  }, [scrollY, isMenuOpen]);
 
   // Set up scroll event listener with proper cleanup and throttling
   useEffect(() => {
@@ -291,269 +321,295 @@ const Header = () => {
     // In a real app, would also change the app's language
   };
 
-  return (
-    <motion.header
-      className={`fixed left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-[#171b21]/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
-      }`}
-      initial={{ y: 0 }}
-      animate={{
-        y: isVisible ? 0 : -100,
-        opacity: isVisible ? 1 : 0,
-      }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {/* Premium top notification bar with animation - optional */}
-      {/* <AnimatePresence>
-        {!isScrolled && (
-          <motion.div
-            className="bg-blue-600 text-white text-sm py-1.5"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="container mx-auto px-4 flex items-center justify-center">
-              <span className="mr-2">🎉</span>
-              <span>Новым клиентам скидка 10% на первый визит</span>
-              <Link
-                to="/special-offer"
-                className="ml-3 underline underline-offset-2 font-medium hover:text-white/90 transition-colors"
-              >
-                Подробнее
-              </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence> */}
+  // Handle mobile menu toggle
+  const handleMenuToggle = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
-      {/* Main header content */}
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        {/* Premium logo with hover effect */}
-        <Link to="/" className="flex items-center relative z-10">
+  return (
+    <>
+      <motion.header
+        className={`fixed left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled ? 'bg-[#171b21]/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
+        }`}
+        initial={{ y: 0 }}
+        animate={{
+          y: (isVisible || isMenuOpen) ? 0 : -100, // Always show when menu is open
+          opacity: (isVisible || isMenuOpen) ? 1 : 0,
+        }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {/* Main header content */}
+        <div className="container mx-auto px-6 py-6 flex justify-between items-center relative">
+          {/* Premium desktop navigation with enhanced animations */}
+          <nav className="hidden lg:flex items-center">
+            <ul className="flex space-x-8">
+              {navItems.map((item, index) => (
+                <li key={index} className="relative">
+                  <div
+                    onMouseEnter={() => item.hasSubmenu && handleSubmenuEnter(index)}
+                    onMouseLeave={handleSubmenuLeave}
+                  >
+                    <div className="flex items-center">
+                      <NavLink
+                        to={item.to}
+                        label={item.label}
+                        isActive={
+                          location.pathname === item.to ||
+                          location.pathname.startsWith(`${item.to}/`)
+                        }
+                        onMouseEnter={() => item.hasSubmenu && handleSubmenuEnter(index)}
+                        onMouseLeave={item.hasSubmenu ? handleSubmenuLeave : undefined}
+                      />
+                      {item.hasSubmenu && (
+                        <motion.div
+                          className="ml-1 text-white/70"
+                          animate={{ rotate: activeSubmenu === index ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <ChevronDown size={14} />
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Submenu dropdown */}
+                    {item.hasSubmenu && (
+                      <SubMenu
+                        items={item.submenuItems}
+                        show={activeSubmenu === index}
+                        onMouseEnter={() => handleSubmenuEnter(index)}
+                        onMouseLeave={handleSubmenuLeave}
+                      />
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Premium language and contact buttons */}
+          <div className="hidden lg:flex items-center space-x-8">
+            {/* Premium call button with animation */}
+            <Button
+              asChild
+              className="bg-white hover:bg-white/90 text-primary-900 rounded-full px-6 py-6
+              flex items-center transition-all duration-300 hover:shadow-lg hover:shadow-blue-900/10"
+            >
+              <Link to="/contact" className="flex items-center">
+                <span className="font-medium">Записаться</span>
+              </Link>
+            </Button>
+          </div>
+
+          {/* Mobile menu button with premium animation */}
+          <motion.button
+            className="lg:hidden text-white p-2 z-20 relative"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleMenuToggle}
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+          >
+            <AnimatePresence mode="wait">
+              {isMenuOpen ? (
+                <motion.div
+                  key="close"
+                  initial={{ opacity: 0, rotate: -90 }}
+                  animate={{ opacity: 1, rotate: 0 }}
+                  exit={{ opacity: 0, rotate: 90 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <X size={24} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="menu"
+                  initial={{ opacity: 0, rotate: 90 }}
+                  animate={{ opacity: 1, rotate: 0 }}
+                  exit={{ opacity: 0, rotate: -90 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Menu size={24} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        </div>
+
+        {/* Premium mobile menu with enhanced animations */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              className="lg:hidden fixed inset-0 bg-[#171b21]/98 backdrop-blur-md z-10 pt-24 overflow-hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="container mx-auto px-4 py-6 flex flex-col h-full overflow-y-auto">
+                {/* Mobile navigation links with premium animations */}
+                <nav className="flex-1">
+                  <ul className="space-y-6">
+                    {navItems.map((item, index) => (
+                      <motion.li
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 + 0.1, duration: 0.3 }}
+                      >
+                        <Link
+                          to={item.to}
+                          className="py-2 font-inter text-xl text-gray-300 transition-colors block"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          {item.label}
+                        </Link>
+
+                        {/* Mobile submenu - simplified version */}
+                        {item.hasSubmenu && (
+                          <div className="ml-4 mt-3 space-y-3">
+                            {item.submenuItems.map((subItem, subIdx) => (
+                              <motion.div
+                                key={subIdx}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{
+                                  delay: index * 0.05 + 0.1 + (subIdx + 1) * 0.03,
+                                  duration: 0.3,
+                                }}
+                              >
+                                <Link
+                                  to={subItem.to}
+                                  className="py-1 text-white/70 hover:text-white flex items-center transition-all duration-200"
+                                  onClick={() => setIsMenuOpen(false)}
+                                >
+                                  <span className="mr-2 text-blue-400">{subItem.icon}</span>
+                                  {subItem.label}
+                                </Link>
+                              </motion.div>
+                            ))}
+                          </div>
+                        )}
+                      </motion.li>
+                    ))}
+                  </ul>
+                </nav>
+
+                {/* Mobile bottom section with language and contact */}
+                <div className="pt-6 border-t border-white/10">
+                  {/* Contact button */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <Button
+                      asChild
+                      className="w-full bg-white hover:bg-white/90 text-primary-900 rounded-full py-6 flex items-center justify-center"
+                    >
+                      <a href="tel:+99895122-88-55">
+                        <Phone size={16} className="mr-2" />
+                        Позвонить
+                      </a>
+                    </Button>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.header>
+
+      {/* Natural Logo with Organic Animations */}
+      <Link to="/" className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100]">
+        <motion.div
+          className="relative flex items-center justify-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.8,
+            ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+        >
+          {/* Subtle glow effect - multiple layers for better browser support */}
+          <motion.div
+            className="absolute inset-0 bg-white/10 rounded-full blur-lg"
+            animate={{
+              scale: [1, 1.15, 1],
+              opacity: [0.2, 0.4, 0.2],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+          <motion.div
+            className="absolute inset-0 bg-white/20 rounded-full blur-md"
+            animate={{
+              scale: [1, 1.08, 1],
+              opacity: [0.1, 0.3, 0.1],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: 0.5,
+            }}
+          />
+
+          {/* Main logo with natural breathing animation */}
           <motion.img
             src="/images/logo.png"
             alt="AB Clinic"
-            className="h-16 md:h-20"
-            whileHover={{ scale: 1.03 }}
-            transition={{ duration: 0.2 }}
+            //style={{ filter: "drop-shadow(0 0 0.1rem 0.1rem #ffffff)" }}
+            className="relative h-14 md:h-16 drop-shadow-lg"
+            animate={{
+              y: [0, -2, 0],
+              scale: [1, 1.02, 1],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              times: [0, 0.5, 1],
+            }}
+            whileHover={{
+              scale: 1.08,
+              rotate: [0, -1, 1, 0],
+              transition: {
+                duration: 0.6,
+                rotate: {
+                  duration: 0.8,
+                  ease: 'easeInOut',
+                },
+              },
+            }}
+            whileTap={{
+              scale: 0.96,
+              transition: { duration: 0.1 },
+            }}
           />
-        </Link>
 
-        {/* Premium desktop navigation with enhanced animations */}
-        <nav className="hidden lg:flex items-center">
-          <ul className="flex space-x-8">
-            {navItems.map((item, index) => (
-              <li key={index} className="relative">
-                <div
-                  onMouseEnter={() => item.hasSubmenu && handleSubmenuEnter(index)}
-                  onMouseLeave={handleSubmenuLeave}
-                >
-                  <div className="flex items-center">
-                    <NavLink
-                      to={item.to}
-                      label={item.label}
-                      isActive={
-                        location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
-                      }
-                      onMouseEnter={() => item.hasSubmenu && handleSubmenuEnter(index)}
-                      onMouseLeave={item.hasSubmenu ? handleSubmenuLeave : undefined}
-                    />
-                    {item.hasSubmenu && (
-                      <motion.div
-                        className="ml-1 text-white/70"
-                        animate={{ rotate: activeSubmenu === index ? 180 : 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <ChevronDown size={14} />
-                      </motion.div>
-                    )}
-                  </div>
-
-                  {/* Submenu dropdown */}
-                  {item.hasSubmenu && (
-                    <SubMenu
-                      items={item.submenuItems}
-                      show={activeSubmenu === index}
-                      onMouseEnter={() => handleSubmenuEnter(index)}
-                      onMouseLeave={handleSubmenuLeave}
-                    />
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        {/* Premium language and contact buttons */}
-        <div className="hidden lg:flex items-center space-x-8">
-          {/* Premium language selector with enhanced styling
-          <div className="flex items-center space-x-4 border-r border-white/10 pr-8">
-            {['uz', 'ru', 'en'].map((lang) => (
-              <LanguageButton
-                key={lang}
-                lang={lang}
-                isActive={activeLanguage === lang}
-                onClick={handleLanguageChange}
-              />
-            ))}
-          </div> */}
-
-          {/* Premium call button with animation */}
-          <Button
-            asChild
-            className="bg-white hover:bg-white/90 text-primary-900 rounded-full pl-4 pr-5 py-6
-              flex items-center transition-all duration-300 hover:shadow-lg hover:shadow-blue-900/10"
-          >
-            <Link to="/contact" className="flex items-center">
-              <span className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center mr-2">
-                <Phone size={14} className="text-white" />
-              </span>
-              <span className="font-medium">+998 95-122-88-55</span>
-            </Link>
-          </Button>
-        </div>
-
-        {/* Mobile menu button with premium animation */}
-        <motion.button
-          className="lg:hidden text-white p-2 z-20"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-        >
-          <AnimatePresence mode="wait">
-            {isMenuOpen ? (
-              <motion.div
-                key="close"
-                initial={{ opacity: 0, rotate: -90 }}
-                animate={{ opacity: 1, rotate: 0 }}
-                exit={{ opacity: 0, rotate: 90 }}
-                transition={{ duration: 0.2 }}
-              >
-                <X size={24} />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="menu"
-                initial={{ opacity: 0, rotate: 90 }}
-                animate={{ opacity: 1, rotate: 0 }}
-                exit={{ opacity: 0, rotate: -90 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Menu size={24} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.button>
-      </div>
-
-      {/* Premium mobile menu with enhanced animations */}
-      <AnimatePresence>
-        {isMenuOpen && (
+          {/* Interactive sparkle effect on hover */}
           <motion.div
-            className="lg:hidden fixed inset-0 bg-[#171b21]/98 backdrop-blur-md z-10 pt-24"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: '100vh' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div className="container mx-auto px-4 py-6 flex flex-col h-full">
-              {/* Mobile navigation links with premium animations */}
-              <nav className="flex-1">
-                <ul className="space-y-6">
-                  {navItems.map((item, index) => (
-                    <motion.li
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 + 0.1, duration: 0.3 }}
-                    >
-                      <Link
-                        to={item.to}
-                        className="py-2 font-inter text-xl hover:text-gray-300 transition-colors block"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        {item.label}
-                      </Link>
-
-                      {/* Mobile submenu - simplified version */}
-                      {item.hasSubmenu && (
-                        <div className="ml-4 mt-3 space-y-3">
-                          {item.submenuItems.map((subItem, subIdx) => (
-                            <motion.div
-                              key={subIdx}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{
-                                delay: index * 0.05 + 0.1 + (subIdx + 1) * 0.03,
-                                duration: 0.3,
-                              }}
-                            >
-                              <Link
-                                to={subItem.to}
-                                className="py-1 text-white/70 hover:text-white flex items-center transition-all duration-200"
-                                onClick={() => setIsMenuOpen(false)}
-                              >
-                                <span className="mr-2 text-blue-400">{subItem.icon}</span>
-                                {subItem.label}
-                              </Link>
-                            </motion.div>
-                          ))}
-                        </div>
-                      )}
-                    </motion.li>
-                  ))}
-                </ul>
-              </nav>
-
-              {/* Mobile bottom section with language and contact */}
-              <div className="pt-6 border-t border-white/10">
-                {/* Language selector */}
-                <motion.div
-                  className="flex space-x-6 pb-6"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  {['uz', 'ru', 'en'].map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => handleLanguageChange(lang)}
-                      className={`flex items-center space-x-2 ${activeLanguage === lang ? 'text-white' : 'text-white/70'}`}
-                    >
-                      <img
-                        src={`/flags/${lang}.svg`}
-                        alt={lang.toUpperCase()}
-                        className="w-5 h-4"
-                      />
-                      <span className="font-inter">{lang.toUpperCase()}</span>
-                    </button>
-                  ))}
-                </motion.div>
-
-                {/* Contact button */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <Button
-                    asChild
-                    className="w-full bg-white hover:bg-white/90 text-primary-900 rounded-full py-6 flex items-center justify-center"
-                  >
-                    <Link to="/contact" onClick={() => setIsMenuOpen(false)}>
-                      <Phone size={16} className="mr-2" />
-                      Позвонить
-                    </Link>
-                  </Button>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.header>
+            className="absolute inset-0 pointer-events-none"
+            initial={false}
+            whileHover={{
+              background: [
+                'radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+                'radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+                'radial-gradient(circle at 40% 40%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+              ],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        </motion.div>
+      </Link>
+    </>
   );
 };
 

@@ -8,6 +8,7 @@ import ServicesSection from '@/components/home/ServicesSection';
 import PhotoGallerySection from '@/components/home/PhotoGallerySection';
 import InfoDocumentsSection from '@/components/home/InfoDocumentsSection';
 import ContactMapSection from '@/components/home/ContactMapSection';
+import { timelineData } from '../types/timelineData';
 
 const HomePage = () => {
   const controls = useAnimation();
@@ -49,6 +50,7 @@ const HomePage = () => {
 
       {/* Contact Map Section */}
       <ContactMapSection />
+
     </motion.div>
   );
 };

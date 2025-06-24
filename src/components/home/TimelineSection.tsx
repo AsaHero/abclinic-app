@@ -1,4 +1,4 @@
-// src/components/sections/TimelineSection.tsx
+// src/components/sections/TimelineSection.tsx - Updated for new structure
 import { useRef, useState, useEffect } from 'react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import Timeline from '../timeline/Timeline';
@@ -58,7 +58,7 @@ const AnimatedParagraph = ({ children, delay = 0, className = '' }) => {
   );
 };
 
-// Glowing dot animation for background
+// Glowing dots animation for background
 const GlowingDots = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -148,7 +148,7 @@ const TimelineSection = () => {
         </div>
       </div>
 
-      {/* Enhanced Timeline Component */}
+      {/* Enhanced Timeline Component - No loading state needed */}
       <motion.div
         className="w-full max-w-screen-2xl mx-auto"
         initial={{ opacity: 0 }}

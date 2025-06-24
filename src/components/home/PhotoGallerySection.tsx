@@ -7,6 +7,7 @@ import { X, ZoomIn, ArrowLeft, ArrowRight } from 'lucide-react';
 interface GalleryPhoto {
   id: string;
   src: string;
+  thumbnail: string;
   alt: string;
   category: string;
   title?: string;
@@ -27,6 +28,7 @@ const galleryPhotos: GalleryPhoto[] = [
   {
     id: '1',
     src: '/images/gallery/abclinic-day.jpg',
+    thumbnail: `/images/gallery/abclinic-day-preview.jpg`,
     alt: 'Фасад клиники днём',
     category: 'interior',
     title: 'Вход в клинику',
@@ -35,6 +37,7 @@ const galleryPhotos: GalleryPhoto[] = [
   {
     id: '2',
     src: '/images/gallery/abclinic-night.jpg',
+    thumbnail: `/images/gallery/abclinic-night-preview.jpg`,
     alt: 'Фасад клиники ночью',
     category: 'interior',
     title: 'Клиника ночью',
@@ -43,6 +46,7 @@ const galleryPhotos: GalleryPhoto[] = [
   {
     id: '4',
     src: '/images/gallery/white-cab.jpg',
+    thumbnail: `/images/gallery/white-cab-preview.jpg`,
     alt: 'Светлый стоматологический кабинет',
     category: 'interior',
     title: 'Кабинет',
@@ -51,6 +55,7 @@ const galleryPhotos: GalleryPhoto[] = [
   {
     id: '5',
     src: '/images/gallery/big-cab.jpg',
+    thumbnail: `/images/gallery/big-cab-preview.jpg`,
     alt: 'Современное стоматологическое кресло',
     category: 'equipment',
     title: 'Стоматологическое оборудование',
@@ -59,6 +64,7 @@ const galleryPhotos: GalleryPhoto[] = [
   {
     id: '6',
     src: '/images/gallery/sterilization.jpg',
+    thumbnail: `/images/gallery/sterilization-preview.jpg`,
     alt: 'Стерилизационное оборудование',
     category: 'equipment',
     title: 'Стерилизация',
@@ -67,6 +73,7 @@ const galleryPhotos: GalleryPhoto[] = [
   {
     id: '7',
     src: '/images/gallery/nakladki-group.jpg',
+    thumbnail: `/images/gallery/nakladki-group-preview.jpg`,
     alt: 'Диагностические модели челюстей',
     category: 'equipment',
     title: 'Диагностические модели',
@@ -75,6 +82,7 @@ const galleryPhotos: GalleryPhoto[] = [
   {
     id: '8',
     src: '/images/gallery/nakladki-estetics.png',
+    thumbnail: `/images/gallery/nakladki-estetics-preview.jpg`,
     alt: 'Зубные накладки на фоне растений',
     category: 'treatment',
     title: 'Эстетика лечения',
@@ -83,6 +91,7 @@ const galleryPhotos: GalleryPhoto[] = [
   {
     id: '9',
     src: '/images/gallery/ibrohimjon-azimov-cerificate.jpg',
+    thumbnail: `/images/gallery/ibrohimjon-azimov-cerificate-preview.jpg`,
     alt: 'Сертификат доктора',
     category: 'team',
     title: 'Профессионализм',
@@ -91,6 +100,7 @@ const galleryPhotos: GalleryPhoto[] = [
   {
     id: '10',
     src: '/images/gallery/oda.jpg',
+    thumbnail: `/images/gallery/oda-preview.jpg`,
     alt: 'Участники международного имплантологического проекта',
     category: 'team',
     title: 'Проект ODA',
@@ -99,30 +109,52 @@ const galleryPhotos: GalleryPhoto[] = [
   },
 ];
 
-// Premium photo card component
-const PhotoCard = ({ photo, index, onClick }) => {
+// Premium photo card component with preview optimization
+const PhotoCard = ({ photo, index, onClick, className = '' }) => {
   const cardRef = useRef(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const isInView = useInView(cardRef, { once: true, amount: 0.2 });
+
+  const getCardHeight = (index: number) => {
+    const heights = ['h-64', 'h-80', 'h-72', 'h-96', 'h-60', 'h-88', 'h-76', 'h-84'];
+    return heights[index % heights.length];
+  };
 
   return (
     <motion.div
       ref={cardRef}
-      className="relative group cursor-pointer overflow-hidden rounded-xl bg-gray-900 aspect-square"
+      className={`relative group cursor-pointer overflow-hidden rounded-xl bg-gray-900 ${getCardHeight(index)} ${className}`}
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.5, delay: 0.1 * index }}
+      transition={{ duration: 0.5, delay: 0.1 * (index % 8) }}
       onClick={() => onClick(photo)}
       whileHover={{ y: -5 }}
     >
-      {/* Photo with premium loading effect */}
+      {/* Premium loading skeleton */}
+      {!imageLoaded && (
+        <div className="absolute inset-0 bg-gray-800 animate-pulse">
+          <div className="w-full h-full bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 animate-pulse" />
+        </div>
+      )}
+
+      {/* Photo with premium loading effect - using preview for performance */}
       <div className="relative w-full h-full overflow-hidden">
         <img
-          src={photo.src}
+          src={photo.thumbnail}
           alt={photo.alt}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          loading="lazy"
+          onLoad={() => setImageLoaded(true)}
           onError={(e) => {
-            // Fallback for missing images
-            e.currentTarget.src = '/images/placeholder-clinic.jpg';
+            // Fallback to main image if preview fails, then to placeholder
+            if (e.currentTarget.src === photo.thumbnail) {
+              e.currentTarget.src = photo.src;
+            } else {
+              e.currentTarget.src = '/images/placeholder-clinic.jpg';
+            }
+            setImageLoaded(true);
           }}
         />
 
@@ -360,21 +392,26 @@ const PhotoGallerySection: React.FC = () => {
             ))}
           </motion.div>
 
-          {/* Premium photo grid - restored uniform layout */}
+          {/* Premium masonry photo grid with dynamic visual hierarchy */}
           <motion.div
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+            className="columns-2 md:columns-3 lg:columns-4 gap-4 md:gap-6 space-y-4 md:space-y-6"
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.7, delay: 0.1 }}
           >
             <AnimatePresence mode="wait">
               {filteredPhotos.map((photo, index) => (
-                <PhotoCard
+                <div
                   key={`${selectedCategory}-${photo.id}`}
-                  photo={photo}
-                  index={index}
-                  onClick={openLightbox}
-                />
+                  className="break-inside-avoid mb-4 md:mb-6"
+                >
+                  <PhotoCard
+                    photo={photo}
+                    index={index}
+                    onClick={openLightbox}
+                    className="w-full"
+                  />
+                </div>
               ))}
             </AnimatePresence>
           </motion.div>

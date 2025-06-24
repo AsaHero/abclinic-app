@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Phone } from 'lucide-react';
 
 // Split text animation helper component
 const SplitText = ({ text, className, delay = 0 }) => {
@@ -31,7 +31,7 @@ const SplitTextOutline = ({ text, className, delay = 0 }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       const interval = setInterval(() => {
-        setVisibleChars(prev => {
+        setVisibleChars((prev) => {
           if (prev >= text.length) {
             clearInterval(interval);
             return prev;
@@ -47,11 +47,14 @@ const SplitTextOutline = ({ text, className, delay = 0 }) => {
   }, [text, delay]);
 
   return (
-    <div className={className} style={{
-      WebkitTextStroke: '2px white',
-      WebkitTextFillColor: 'transparent',
-      color: 'transparent'
-    }}>
+    <div
+      className={className}
+      style={{
+        WebkitTextStroke: '2px white',
+        WebkitTextFillColor: 'transparent',
+        color: 'transparent',
+      }}
+    >
       {text.split('').map((char, index) => (
         <span
           key={index}
@@ -207,10 +210,8 @@ const HeroSection = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
               >
-abclinic.uz — это стоматология, вдохновлённая природой, где мы восстанавливаем зубы так, чтобы сохранить их естественную форму, цвет и биомеханику.
-В основе нашего подхода — уважение к природе, любовь к деталям и стремление к гармонии, заметное в каждом элементе: от цифровых технологий до эстетики интерьера.
-Мы продолжаем семейную традицию стоматологии в третьем поколении, объединяя опыт с новейшим оборудованием и минималистичным подходом, вдохновлённым философией Apple.
-Всё устроено просто и прозрачно, с любой формой оплаты — чтобы путь к новой улыбке был таким же комфортным, как результат.
+                abclinic.uz — семейная стоматология, вдохновлённая природой, где мы объединяем
+                наследие трёх поколений, цифровые технологии и минимализм в каждой детали.
               </motion.p>
 
               {/* Enhanced CTA Button group */}
@@ -222,10 +223,13 @@ abclinic.uz — это стоматология, вдохновлённая пр
               >
                 <Button
                   asChild
-                  className="bg-white hover:bg-white/90 text-primary-900 rounded-full px-8 py-6 text-base font-medium transition-all duration-300 hover:shadow-lg group overflow-hidden relative"
+                  className="bg-white hover:bg-white/90 text-primary-900 rounded-full px-5  py-6 text-base font-medium transition-all duration-300 hover:shadow-lg group overflow-hidden relative"
                 >
-                  <Link to="/contact" className="flex items-center gap-2">
-                    <span>Записаться</span>
+                  <a href="tel:+99895122-88-55" className="flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center mr-2">
+                      <Phone size={14} className="text-white" />
+                    </span>
+                    <span>Позвонить</span>
                     <motion.div className="relative" initial={{ x: 0 }} whileHover={{ x: 5 }}>
                       <ArrowRight size={18} className="stroke-2" />
                     </motion.div>
@@ -235,7 +239,7 @@ abclinic.uz — это стоматология, вдохновлённая пр
                       whileHover={{ x: '100%' }}
                       transition={{ duration: 0.6 }}
                     />
-                  </Link>
+                  </a>
                 </Button>
 
                 <Button
