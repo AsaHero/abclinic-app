@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence, useAnimation } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   serviceCategories,
@@ -61,6 +61,21 @@ const PriceListPage: React.FC = () => {
 
   // State for "How it works" modal
   const [isHowItWorksModalOpen, setIsHowItWorksModalOpen] = useState<boolean>(false);
+
+  const controls = useAnimation();
+
+  // Setup page entry animation
+  useEffect(() => {
+    // Start animation sequence
+    controls.start({
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8 },
+    });
+
+    // Smooth scroll restoration
+    window.scrollTo(0, 0);
+  }, [controls]);
 
   // Get filtered services based on active category
   const displayedServices = React.useMemo(() => {
@@ -276,8 +291,9 @@ const PriceListPage: React.FC = () => {
         {/* NEW: Category Information Component */}
         {!searchQuery && (
           <CategoryInformation
-            categoryId={activeCategory}
-            isNewClient={isNewClient}
+            requiresConsultation={
+              serviceCategories.find((s) => s.id === activeCategory)?.requiresConsultation
+            }
             onToggleClientType={handleToggleClientType}
             setIsHowItWorksModalOpen={setIsHowItWorksModalOpen}
           />
@@ -346,12 +362,12 @@ const PriceListPage: React.FC = () => {
             variants={containerVariants}
             initial="hidden"
             animate={isLoading ? 'hidden' : 'visible'}
-            key={`${activeCategory}-${searchQuery}-${isNewClient}`} // Re-animate when key params change
+            key={`${activeCategory}-${searchQuery}`} // Re-animate when key params change
           >
             {filteredServices.length > 0 ? (
               filteredServices.map((service) => {
                 // Check if service requires consultation
-                const needsConsultation = requiresConsultation(service, isNewClient);
+                const needsConsultation = requiresConsultation(service);
 
                 return (
                   <motion.div

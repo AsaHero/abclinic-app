@@ -192,20 +192,20 @@ const HeroSection = () => {
               {/* Title with enhanced reveal animation */}
               <SplitTextOutline
                 text="abclinic"
-                className="text-5xl md:text-8xl lg:text-9xl font-arista-regular mb-2 tracking-normal"
+                className="text-5xl md:text-8xl lg:text-9xl font-arista-regular mb-2 mt-8 tracking-normal"
                 delay={0.2}
               />
 
               {/* Enhanced subtitle with reveal animation */}
               <SplitText
                 text="cоздай историю"
-                className="text-xl md:text-4xl lg:text-5xl font-arista-extralight mb-8 text-white/90 tracking-wide"
+                className="text-xl md:text-4xl lg:text-5xl font-arista-extralight my-8 text-white/90 tracking-wide"
                 delay={0.3}
               />
 
               {/* Description text */}
               <motion.p
-                className="max-w-xl text-base md:text-lg font-light text-white/70 mb-8 leading-relaxed"
+                className="max-w-xl text-base md:text-lg font-light text-white/70 mb-8 leading-relaxed flex "
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
@@ -216,20 +216,17 @@ const HeroSection = () => {
 
               {/* Enhanced CTA Button group */}
               <motion.div
-                className="flex flex-col sm:flex-row gap-4 items-center"
+                className="flex flex-col w-full sm:flex-row gap-4 items-center justify-center"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
               >
                 <Button
                   asChild
-                  className="bg-white hover:bg-white/90 text-primary-900 rounded-full px-5  py-6 text-base font-medium transition-all duration-300 hover:shadow-lg group overflow-hidden relative"
+                  className="bg-white hover:bg-white/90 text-primary-900 rounded-full w-1/2 sm:w-1/3 px-6 py-6 text-base font-medium transition-all duration-300 hover:shadow-lg group overflow-hidden relative"
                 >
-                  <a href="tel:+99895122-88-55" className="flex items-center gap-2">
-                    <span className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center mr-2">
-                      <Phone size={14} className="text-white" />
-                    </span>
-                    <span>Позвонить</span>
+                  <Link to="/contacts" className="flex items-center gap-2 ">
+                    <span>Записаться</span>
                     <motion.div className="relative" initial={{ x: 0 }} whileHover={{ x: 5 }}>
                       <ArrowRight size={18} className="stroke-2" />
                     </motion.div>
@@ -239,13 +236,13 @@ const HeroSection = () => {
                       whileHover={{ x: '100%' }}
                       transition={{ duration: 0.6 }}
                     />
-                  </a>
+                  </Link>
                 </Button>
 
                 <Button
                   asChild
                   variant="outline"
-                  className="border border-white/30 text-white bg-transparent hover:bg-white/10 rounded-full px-8 py-6 text-base font-medium backdrop-blur-sm"
+                  className="border border-white/30 text-white bg-transparent hover:bg-white/10 rounded-full w-1/2 sm:w-1/3 py-6 text-base font-medium backdrop-blur-sm"
                 >
                   <Link to="/services">Наши услуги</Link>
                 </Button>

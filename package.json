@@ -10,6 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@coreui/icons": "^3.0.1",
+    "@coreui/icons-react": "^2.3.0",
+    "@hugeicons/core-free-icons": "^1.0.14",
+    "@hugeicons/react": "^1.0.5",
     "@radix-ui/react-slot": "^1.1.2",
     "@reduxjs/toolkit": "^2.6.0",
     "@tailwindcss/typography": "^0.5.16",

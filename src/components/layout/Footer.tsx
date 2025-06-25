@@ -13,6 +13,14 @@ import {
   ChevronRight,
   ArrowUp,
 } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
+  Facebook02Icon,
+  FacebookIcon,
+  FaceIdIcon,
+  InstagramIcon,
+  TelegramIcon,
+} from '@hugeicons/core-free-icons';
 
 // Premium footer section component with animation
 const FooterSection = ({ title, children, delay = 0 }) => {
@@ -58,7 +66,7 @@ const FooterLink = ({ to, children, index = 0 }) => {
 };
 
 // Premium social media link component
-const SocialLink = ({ href, icon: Icon, label, delay = 0 }) => {
+const SocialLink = ({ href, icon, label, delay = 0 }) => {
   return (
     <motion.a
       href={href}
@@ -71,7 +79,7 @@ const SocialLink = ({ href, icon: Icon, label, delay = 0 }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
     >
-      <Icon size={18} className="text-gray-300 group-hover:text-white transition-colors" />
+      <HugeiconsIcon icon={icon} size={18} color="#ffffff" />
     </motion.a>
   );
 };
@@ -274,10 +282,7 @@ const Footer = () => {
             <div className="mb-6">
               <ContactItem icon={MapPin} delay={0.6}>
                 <p>Ташкент, ул. Нукусс, 88/55</p>
-                <Link
-                  to="/contact"
-                  className="text-blue-400 hover:text-blue-300 mt-1 inline-block"
-                >
+                <Link to="/contact" className="text-blue-400 hover:text-blue-300 mt-1 inline-block">
                   Показать на карте
                 </Link>
               </ContactItem>
@@ -295,19 +300,19 @@ const Footer = () => {
               <div className="flex space-x-3">
                 <SocialLink
                   href="https://instagram.com/abclinic"
-                  icon={Instagram}
+                  icon={InstagramIcon}
                   label="Instagram"
                   delay={0.8}
                 />
                 <SocialLink
-                  href="https://twitter.com/abclinic"
-                  icon={Twitter}
-                  label="Twitter"
+                  href="https://t.me/abclinic_support"
+                  icon={TelegramIcon}
+                  label="Telegram"
                   delay={0.9}
                 />
                 <SocialLink
-                  href="https://facebook.com/abclinic"
-                  icon={Facebook}
+                  href="https://www.facebook.com/azimovclinic.uz"
+                  icon={Facebook02Icon}
                   label="Facebook"
                   delay={1.0}
                 />

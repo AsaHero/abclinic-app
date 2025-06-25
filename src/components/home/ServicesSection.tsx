@@ -8,6 +8,7 @@ import { ArrowRight, CheckCircle } from 'lucide-react';
 interface ServiceCategory {
   id: string;
   title: string;
+  href: string;
   icon: React.ReactNode;
   description: string;
   services: string[];
@@ -48,12 +49,12 @@ const SectionHeading = ({ children }) => {
 };
 
 // Service card component with premium styling
-const ServiceCard = ({ category, index }) => {
+const ServiceCard = ({ category, index, href }) => {
   const cardRef = useRef(null);
   const isInView = useInView(cardRef, { once: true, amount: 0.2 });
 
   return (
-    <motion.div
+        <motion.div
       ref={cardRef}
       key={category.id}
       className={`relative overflow-hidden rounded-2xl p-8 flex flex-col min-h-[400px] border border-transparent transition-all duration-500
@@ -67,6 +68,10 @@ const ServiceCard = ({ category, index }) => {
       transition={{ duration: 0.7, delay: 0.1 * index }}
       whileHover={{ y: -5, transition: { duration: 0.3 } }}
     >
+      {/* Link */}
+
+      <Link to={href} className="absolute w-full h-full top-0 left-0 z-10" />
+
       {/* Subtle background patterns for depth */}
       <div className="absolute top-0 right-0 w-full h-full opacity-5 pointer-events-none">
         <svg width="500" height="500" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -127,6 +132,7 @@ const serviceCategories: ServiceCategory[] = [
   {
     id: 'consultation',
     title: 'Консультация и диагностика',
+    href: '/services?category=consultation',
     icon: (
       <svg
         width="40"
@@ -150,6 +156,7 @@ const serviceCategories: ServiceCategory[] = [
   {
     id: 'hygiene',
     title: 'Гигиена и профилактика',
+    href: '/services?category=hygiene',
     icon: (
       <svg
         width="40"
@@ -174,6 +181,7 @@ const serviceCategories: ServiceCategory[] = [
   {
     id: 'restoration',
     title: 'Лечение и восстановление',
+    href: '/services?category=treatment',
     icon: (
       <svg
         width="40"
@@ -205,6 +213,7 @@ const serviceCategories: ServiceCategory[] = [
   {
     id: 'aesthetic',
     title: 'Эстетическая стоматология',
+    href: '/services?category=aesthetic',
     icon: (
       <svg
         width="40"
@@ -278,7 +287,7 @@ const ServicesSection: React.FC = () => {
           transition={{ duration: 0.7, delay: 0.1 }}
         >
           {serviceCategories.map((category, index) => (
-            <ServiceCard key={category.id} category={category} index={index} />
+            <ServiceCard key={category.id} category={category} index={index} href={category.href} />
           ))}
         </motion.div>
 

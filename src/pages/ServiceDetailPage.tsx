@@ -46,7 +46,7 @@ const ServiceDetailPage: React.FC = () => {
   const relatedServices = service ? getRelatedServices(service.id, 3) : [];
 
   // Check if service requires consultation
-  const needsConsultation = service ? requiresConsultation(service, true) : false;
+  const needsConsultation = service ? requiresConsultation(service) : false;
 
   useEffect(() => {
     // If service not found, redirect to 404
@@ -110,13 +110,35 @@ const ServiceDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Enhanced Hero Section */}
+      {/* Enhanced Hero Section with Premium Image Background */}
       <motion.section
-        className="py-12 bg-gradient-to-r from-[#87f4b5]/0 to-[#93cbf1]"
+        className={`py-12 relative overflow-hidden ${
+          service.heroImage
+            ? 'min-h-[600px] flex items-center'
+            : 'bg-gradient-to-r from-[#87f4b5]/0 to-[#93cbf1]'
+        }`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
+        {/* Background Image with Overlay */}
+        {service.heroImage && (
+          <>
+            <div
+              className="absolute inset-0 bg-cover bg-no-repeat"
+              style={{
+                backgroundImage: `url(${service.heroImage})`,
+                backgroundPosition: service.backgroundPosition || 'center center',
+              }}
+            />
+            {/* Premium overlay gradients */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+            {/* Subtle pattern overlay for texture */}
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:20px_20px]" />
+          </>
+        )}
+
         <div className="container mx-auto px-4 md:px-8 lg:px-12 relative z-10">
           <Link
             to="/services"
@@ -127,38 +149,66 @@ const ServiceDetailPage: React.FC = () => {
           </Link>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-            {/* Service info - 8 columns */}
-            <div className="lg:col-span-8">
+            {/* Service info - full width when using background image */}
+            <div className={service.heroImage ? 'lg:col-span-12 max-w-4xl' : 'lg:col-span-8'}>
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-arista-light mb-6 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100">
+                <h1
+                  className={`text-4xl md:text-5xl lg:text-6xl font-arista-light mb-6 leading-tight ${
+                    service.heroImage
+                      ? 'text-white drop-shadow-2xl'
+                      : 'bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100'
+                  }`}
+                >
                   {service.name}
                 </h1>
 
-                {/* Consultation requirement badge */}
+                {/* Consultation requirement badge with enhanced styling for image backgrounds */}
                 {service.category !== 'consultation' && (
                   <div className="flex items-center space-x-3 mb-6">
                     {service.includesConsultation ? (
-                      <div className="bg-green-500/20 text-green-400 px-3 py-2 rounded-lg flex items-center text-sm">
+                      <div
+                        className={`px-3 py-2 rounded-lg flex items-center text-sm backdrop-blur-sm ${
+                          service.heroImage
+                            ? 'bg-green-500/30 text-green-200 border border-green-400/20'
+                            : 'bg-green-500/20 text-green-400'
+                        }`}
+                      >
                         <Check size={16} className="mr-2" />
-                        Включает консультацию и диагностику
+                        Включает консультацию
                       </div>
                     ) : needsConsultation ? (
-                      <div className="bg-orange-500/20 text-orange-400 px-3 py-2 rounded-lg flex items-center text-sm">
+                      <div
+                        className={`px-3 py-2 rounded-lg flex items-center text-sm backdrop-blur-sm ${
+                          service.heroImage
+                            ? 'bg-orange-500/30 text-orange-200 border border-orange-400/20'
+                            : 'bg-orange-500/20 text-orange-400'
+                        }`}
+                      >
                         <AlertCircle size={16} className="mr-2" />
                         Требуется предварительная консультация
                         <button
-                          className="ml-2 underline text-orange-300 hover:text-orange-200"
+                          className={`ml-2 underline transition-colors ${
+                            service.heroImage
+                              ? 'text-orange-100 hover:text-orange-50'
+                              : 'text-orange-300 hover:text-orange-200'
+                          }`}
                           onClick={() => setIsHowItWorksModalOpen(true)}
                         >
                           Почему?
                         </button>
                       </div>
                     ) : (
-                      <div className="bg-blue-500/20 text-blue-400 px-3 py-2 rounded-lg flex items-center text-sm">
+                      <div
+                        className={`px-3 py-2 rounded-lg flex items-center text-sm backdrop-blur-sm ${
+                          service.heroImage
+                            ? 'bg-blue-500/30 text-blue-200 border border-blue-400/20'
+                            : 'bg-blue-500/20 text-blue-400'
+                        }`}
+                      >
                         <Info size={16} className="mr-2" />
                         Можно записаться напрямую
                       </div>
@@ -167,27 +217,44 @@ const ServiceDetailPage: React.FC = () => {
                 )}
 
                 <div className="flex items-center text-xl mb-8">
-                  <Clock size={20} className="text-blue-400 mr-3" />
-                  <span className="text-gray-200">{service.duration}</span>
+                  <Clock
+                    size={20}
+                    className={`mr-3 ${service.heroImage ? 'text-blue-300' : 'text-blue-400'}`}
+                  />
+                  <span className={service.heroImage ? 'text-gray-100' : 'text-gray-200'}>
+                    {service.duration}
+                  </span>
 
-                  <div className="h-4 w-px bg-gray-600 mx-6"></div>
+                  <div
+                    className={`h-4 w-px mx-6 ${service.heroImage ? 'bg-gray-400' : 'bg-gray-600'}`}
+                  ></div>
 
-                  <span className="text-2xl font-light text-white">
+                  <span
+                    className={`text-2xl font-light ${service.heroImage ? 'text-white drop-shadow-lg' : 'text-white'}`}
+                  >
                     {service.price.toLocaleString('ru-RU')} сум
                   </span>
                 </div>
 
-                {/* Testimonials with enhanced design */}
-                <p className="text-xl text-gray-300 leading-relaxed mb-10 max-w-3xl font-light">
+                {/* Enhanced description with better contrast for image backgrounds */}
+                <p
+                  className={`text-xl leading-relaxed mb-10 max-w-3xl font-light ${
+                    service.heroImage ? 'text-gray-100 drop-shadow-lg' : 'text-gray-300'
+                  }`}
+                >
                   {service.description}
                 </p>
 
                 <div className="flex flex-wrap gap-4 mb-12">
-                  {/* Conditional CTAs based on consultation requirements */}
+                  {/* Enhanced CTAs with better styling for image backgrounds */}
                   {service.includesConsultation || service.category === 'consultation' ? (
                     <Link
                       to="/contact"
-                      className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium px-8 py-4 rounded-lg inline-flex items-center justify-center transition-all duration-300 shadow-lg shadow-blue-500/20 group"
+                      className={`font-medium px-8 py-4 rounded-lg inline-flex items-center justify-center transition-all duration-300 group ${
+                        service.heroImage
+                          ? 'bg-white/90 hover:bg-white text-gray-900 shadow-2xl backdrop-blur-sm border border-white/20'
+                          : 'bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white shadow-lg shadow-blue-500/20'
+                      }`}
                     >
                       <Calendar
                         size={18}
@@ -199,7 +266,11 @@ const ServiceDetailPage: React.FC = () => {
                     <>
                       <Link
                         to="/services/consult-general"
-                        className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium px-8 py-4 rounded-lg inline-flex items-center justify-center transition-all duration-300 shadow-lg shadow-blue-500/20 group"
+                        className={`font-medium px-8 py-4 rounded-lg inline-flex items-center justify-center transition-all duration-300 group ${
+                          service.heroImage
+                            ? 'bg-white/90 hover:bg-white text-gray-900 shadow-2xl backdrop-blur-sm border border-white/20'
+                            : 'bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white shadow-lg shadow-blue-500/20'
+                        }`}
                       >
                         <Calendar
                           size={18}
@@ -209,7 +280,11 @@ const ServiceDetailPage: React.FC = () => {
                       </Link>
                       <button
                         onClick={() => setIsHowItWorksModalOpen(true)}
-                        className="bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 text-white font-medium px-8 py-4 rounded-lg inline-flex items-center justify-center transition-all duration-300 group"
+                        className={`font-medium px-8 py-4 rounded-lg inline-flex items-center justify-center transition-all duration-300 group ${
+                          service.heroImage
+                            ? 'bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white shadow-lg'
+                            : 'bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 text-white'
+                        }`}
                       >
                         <Info
                           size={18}
@@ -221,7 +296,11 @@ const ServiceDetailPage: React.FC = () => {
                   ) : (
                     <Link
                       to="/contact"
-                      className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-medium px-8 py-4 rounded-lg inline-flex items-center justify-center transition-all duration-300 shadow-lg shadow-blue-500/20 group"
+                      className={`font-medium px-8 py-4 rounded-lg inline-flex items-center justify-center transition-all duration-300 group ${
+                        service.heroImage
+                          ? 'bg-white/90 hover:bg-white text-gray-900 shadow-2xl backdrop-blur-sm border border-white/20'
+                          : 'bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white shadow-lg shadow-blue-500/20'
+                      }`}
                     >
                       <Calendar
                         size={18}
@@ -233,7 +312,11 @@ const ServiceDetailPage: React.FC = () => {
 
                   <Link
                     to="/contact"
-                    className="bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 text-white font-medium px-8 py-4 rounded-lg inline-flex items-center justify-center transition-all duration-300 group"
+                    className={`font-medium px-8 py-4 rounded-lg inline-flex items-center justify-center transition-all duration-300 group ${
+                      service.heroImage
+                        ? 'bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white shadow-lg'
+                        : 'bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 text-white'
+                    }`}
                   >
                     <Phone size={18} className="mr-3 group-hover:scale-110 transition-transform" />
                     Получить консультацию

@@ -5,23 +5,15 @@ import { InfoIcon, AlertTriangle, Calendar, HelpCircle, UserCheck, User } from '
 import { motion } from 'framer-motion';
 
 interface CategoryInformationProps {
-  categoryId: string;
-  isNewClient: boolean;
+  requiresConsultation: boolean;
   onToggleClientType: (isNew: boolean) => void;
   setIsHowItWorksModalOpen: (isOpen: boolean) => void;
 }
 
 const CategoryInformation: React.FC<CategoryInformationProps> = ({
-  categoryId,
+  requiresConsultation,
   setIsHowItWorksModalOpen,
 }) => {
-  // Different messages based on category type
-  const requiresConsultation = categoryId !== 'consultation';
-
-  if (categoryId === 'consultation') {
-    return null; // No special message needed for the consultation category itself or "all" category
-  }
-
   return (
     <motion.div
       className="mb-8 rounded-xl overflow-hidden border border-white/10"

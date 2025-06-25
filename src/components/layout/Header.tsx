@@ -334,8 +334,8 @@ const Header = () => {
         }`}
         initial={{ y: 0 }}
         animate={{
-          y: (isVisible || isMenuOpen) ? 0 : -100, // Always show when menu is open
-          opacity: (isVisible || isMenuOpen) ? 1 : 0,
+          y: isVisible || isMenuOpen ? 0 : -100, // Always show when menu is open
+          opacity: isVisible || isMenuOpen ? 1 : 0,
         }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       >
@@ -392,12 +392,15 @@ const Header = () => {
             {/* Premium call button with animation */}
             <Button
               asChild
-              className="bg-white hover:bg-white/90 text-primary-900 rounded-full px-6 py-6
+              className="bg-white hover:bg-white/90 text-primary-900 rounded-full px-4 py-6
               flex items-center transition-all duration-300 hover:shadow-lg hover:shadow-blue-900/10"
             >
-              <Link to="/contact" className="flex items-center">
-                <span className="font-medium">Записаться</span>
-              </Link>
+              <a href="tel:+99895122-88-55" className="flex items-center">
+                <span className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                  <Phone size={14} className="text-white" />
+                </span>
+                <span className="font-medium">+998 95 122-88-55</span>
+              </a>
             </Button>
           </div>
 
