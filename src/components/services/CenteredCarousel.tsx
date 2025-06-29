@@ -529,6 +529,7 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
                     isActive={isActive}
                     onClick={() => handleCardClick(slideIndex)}
                   />
+                  
                 </motion.div>
               </div>
             );
