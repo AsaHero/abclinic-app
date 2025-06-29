@@ -8,10 +8,9 @@ import { serviceCategories, requiresConsultation } from '@/types/serviceData';
 interface CarouselItemProps {
   service: any;
   isActive: boolean;
-  isNewClient: boolean;
 }
 
-const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, isNewClient }) => {
+const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive }) => {
   if (!service) return null;
 
   // Find category safely with optional chaining
@@ -20,7 +19,7 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, isNewCli
     : 'Без категории';
 
   // Check if service requires consultation
-  const needsConsultation = requiresConsultation(service, isNewClient);
+  const needsConsultation = requiresConsultation(service);
 
   // Define animation variants
   const itemVariants = {
@@ -629,11 +628,7 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
                   delay: Math.min(0.1 * index, 0.4),
                 }}
               >
-                <CarouselItem
-                  service={service}
-                  isActive={isItemActive(index)}
-                  isNewClient={isNewClient}
-                />
+                <CarouselItem service={service} isActive={isItemActive(index)} />
               </motion.div>
             );
           })}
