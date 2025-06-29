@@ -26,6 +26,7 @@ import {
   serviceCategories,
   getRelatedServices,
   requiresConsultation,
+  extraContent
 } from '../types/serviceData';
 import HowItWorksModal from '../components/services/HowItWorksModal';
 import ContactWithUs from '@/components/common/ContactWithUs';
@@ -79,7 +80,7 @@ const ServiceDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen pt-47 bg-[#171b21] text-white">
+    <div className="min-h-screen pt-33 bg-[#171b21] text-white">
       {/* "How it works" modal */}
       <AnimatePresence>
         <HowItWorksModal

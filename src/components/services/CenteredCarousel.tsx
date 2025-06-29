@@ -1,16 +1,22 @@
+// First, install the required dependencies:
+// npm install embla-carousel-react embla-carousel-autoplay
+
 // src/components/CenteredCarousel.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Clock, AlertCircle, Check } from 'lucide-react';
 import { serviceCategories, requiresConsultation } from '@/types/serviceData';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 
 interface CarouselItemProps {
   service: any;
   isActive: boolean;
+  onClick: () => void;
 }
 
-const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive }) => {
+const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick }) => {
   if (!service) return null;
 
   // Find category safely with optional chaining
@@ -92,17 +98,21 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive }) => {
         </div>
       )}
 
-      <Link
-        to={`/services/${service.id}`}
-        className={`block p-6 h-full flex flex-col ${service.isSpecialOffer && 'relative z-10'}`}
-        aria-label={`Подробнее о услуге: ${service.name}`}
+      <div
+        className={`block p-6 h-full flex flex-col cursor-pointer ${service.isSpecialOffer && 'relative z-10'}`}
         onClick={(e) => {
-          // Only allow navigation when clicking on the active item
-          if (!isActive) {
-            e.preventDefault();
-            e.stopPropagation();
+          e.preventDefault();
+          e.stopPropagation();
+          
+          if (isActive) {
+            // If active, navigate to service page
+            window.location.href = `/services/${service.id}`;
+          } else {
+            // If not active, just make it active
+            onClick();
           }
         }}
+        aria-label={isActive ? `Подробнее о услуге: ${service.name}` : `Выбрать услугу: ${service.name}`}
       >
         <div className="mb-4">
           <motion.span
@@ -218,7 +228,7 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive }) => {
             className="text-blue-400 font-medium text-sm flex items-center group"
             whileHover={{ x: 3 }}
           >
-            Подробнее
+            {isActive ? 'Подробнее' : 'Выбрать'}
             <motion.svg
               className="w-4 h-4 ml-1"
               fill="none"
@@ -243,7 +253,7 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive }) => {
             transition={{ duration: 1.5, repeat: Infinity, repeatType: 'reverse' }}
           />
         )}
-      </Link>
+      </div>
     </motion.div>
   );
 };
@@ -253,39 +263,95 @@ interface CenteredCarouselProps {
   isNewClient: boolean;
 }
 
-// CSS for hiding scrollbars
-const hideScrollbarStyles = `
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-`;
-
 const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, isNewClient }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
-  const carouselContainerRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartX = useRef(0);
-  const dragCurrentX = useRef(0);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const [cardWidth, setCardWidth] = useState(400); // Default, will be updated
-  const [cardMargin, setCardMargin] = useState(32); // Default gap between cards
-  const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [isPaused, setIsPaused] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
-  const isTransitioning = useRef(false);
+  const [emblaMainRef, emblaMainApi] = useEmblaCarousel({ loop: false });
+  const [emblaThumbsRef, emblaThumbsApi] = useEmblaCarousel({
+    containScroll: 'keepSnaps',
+    dragFree: true,
+  });
 
-  // Add global styles to hide scrollbars and add gradient border animation
+  // For infinite loop, we need to create enough slides
+  // We'll duplicate the services array to ensure smooth infinite scrolling
+  const duplicatedServices = React.useMemo(() => {
+    if (popularServices.length === 0) return [];
+    
+    // Create enough copies for smooth infinite loop
+    const copies = Math.max(3, Math.ceil(20 / popularServices.length));
+    const result = [];
+    
+    for (let i = 0; i < copies; i++) {
+      result.push(...popularServices);
+    }
+    
+    return result;
+  }, [popularServices]);
+
+  // Autoplay plugin configuration
+  const autoplayRef = useRef(
+    Autoplay({ 
+      delay: 5000, 
+      stopOnInteraction: false, 
+      stopOnMouseEnter: true,
+      stopOnLastSnap: false
+    })
+  );
+
+  // Main carousel setup with proper infinite loop
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    {
+      loop: true, // Enable native loop
+      align: 'center',
+      skipSnaps: false,
+      dragFree: false,
+      slidesToScroll: 1,
+      startIndex: Math.floor(duplicatedServices.length / 2), // Start in middle
+    },
+    [autoplayRef.current]
+  );
+
+  // Map carousel index to original service index
+  const getServiceIndex = useCallback((emblaIndex: number) => {
+    if (popularServices.length === 0) return 0;
+    return emblaIndex % popularServices.length;
+  }, [popularServices.length]);
+
+  // Update selected index when carousel changes
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    const currentIndex = emblaApi.selectedScrollSnap();
+    setSelectedIndex(getServiceIndex(currentIndex));
+  }, [emblaApi, getServiceIndex]);
+
+  // Setup carousel event listeners
+  useEffect(() => {
+    if (!emblaApi) return;
+
+    onSelect();
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+
+    return () => {
+      emblaApi.off('select', onSelect);
+      emblaApi.off('reInit', onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
+  // Handle mounted state for animations
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setHasMounted(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Add global styles
   useEffect(() => {
     const styleEl = document.createElement('style');
     styleEl.textContent = `
-      ${hideScrollbarStyles}
-
       /* Rotating gradient border animation */
       @keyframes rotate-gradient {
         0% {
@@ -293,6 +359,37 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
         }
         100% {
           transform: rotate(360deg);
+        }
+      }
+
+      /* Embla specific styles for centered carousel */
+      .embla {
+        overflow: hidden;
+      }
+      
+      .embla__container {
+        display: flex;
+      }
+      
+      .embla__slide {
+        flex: 0 0 auto;
+        min-width: 0;
+        margin-right: 2rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* Responsive card widths */
+      @media (min-width: 640px) {
+        .embla__slide {
+          flex: 0 0 400px;
+        }
+      }
+      
+      @media (max-width: 639px) {
+        .embla__slide {
+          flex: 0 0 340px;
         }
       }
     `;
@@ -303,260 +400,107 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
     };
   }, []);
 
-  // Calculate and update container and card dimensions
-  useEffect(() => {
-    const updateDimensions = () => {
-      if (carouselContainerRef.current) {
-        const containerRect = carouselContainerRef.current.getBoundingClientRect();
-        setContainerWidth(containerRect.width);
+  // Navigation handlers
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
 
-        // Adjust card width based on container width
-        const isMobile = containerRect.width < 640;
-        setCardWidth(isMobile ? 340 : 400);
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  const scrollTo = useCallback((targetServiceIndex: number) => {
+    if (!emblaApi) return;
+    
+    // Find the closest slide to current position with the target service
+    const currentSlide = emblaApi.selectedScrollSnap();
+    const currentServiceIndex = getServiceIndex(currentSlide);
+    
+    // Calculate direction to minimize distance
+    let targetSlide;
+    if (targetServiceIndex > currentServiceIndex) {
+      // Going forward
+      const stepsForward = targetServiceIndex - currentServiceIndex;
+      const stepsBackward = (currentServiceIndex + popularServices.length) - targetServiceIndex;
+      
+      if (stepsForward <= stepsBackward) {
+        targetSlide = currentSlide + stepsForward;
+      } else {
+        targetSlide = currentSlide - stepsBackward;
       }
-    };
+    } else if (targetServiceIndex < currentServiceIndex) {
+      // Going backward
+      const stepsBackward = currentServiceIndex - targetServiceIndex;
+      const stepsForward = (targetServiceIndex + popularServices.length) - currentServiceIndex;
+      
+      if (stepsBackward <= stepsForward) {
+        targetSlide = currentSlide - stepsBackward;
+      } else {
+        targetSlide = currentSlide + stepsForward;
+      }
+    } else {
+      // Same service, no need to move
+      return;
+    }
+    
+    emblaApi.scrollTo(targetSlide);
+  }, [emblaApi, getServiceIndex, popularServices.length]);
 
-    // Initial calculation
-    updateDimensions();
+  // Handle card click
+  const handleCardClick = useCallback((slideIndex: number) => {
+    const serviceIndex = getServiceIndex(slideIndex);
+    scrollTo(serviceIndex);
+  }, [getServiceIndex, scrollTo]);
 
-    // Recalculate on window resize
-    window.addEventListener('resize', updateDimensions);
-
-    // Set mounted flag after a slight delay for animations
-    const timer = setTimeout(() => {
-      setHasMounted(true);
-    }, 100);
-
-    return () => {
-      window.removeEventListener('resize', updateDimensions);
-      clearTimeout(timer);
-    };
+  // Hover handlers
+  const handleMouseEnter = useCallback(() => {
+    setIsHovering(true);
+    if (autoplayRef.current) {
+      autoplayRef.current.stop();
+    }
   }, []);
 
-  // Reset active index when services change
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [popularServices]);
-
-  // Handle autoplay
-  useEffect(() => {
-    if (isPaused || popularServices.length <= 1 || isTransitioning.current) return;
-
-    const startAutoplay = () => {
-      autoplayTimerRef.current = setInterval(() => {
-        handleNextItem();
-      }, 5000);
-    };
-
-    startAutoplay();
-
-    return () => {
-      if (autoplayTimerRef.current) {
-        clearInterval(autoplayTimerRef.current);
-      }
-    };
-  }, [isPaused, popularServices.length]);
-
-  // Pause autoplay on hover/drag
-  useEffect(() => {
-    setIsPaused(isHovering || isDragging);
-  }, [isHovering, isDragging]);
-
-  // Get the modulo that works correctly with negative numbers
-  const mod = (n: number, m: number): number => {
-    return ((n % m) + m) % m;
-  };
-
-  // Get the actual index considering infinite looping
-  const getRealIndex = (index: number): number => {
-    return mod(index, Math.max(1, popularServices.length));
-  };
-
-  // Handle next/prev item navigation
-  const handleNextItem = () => {
-    if (popularServices.length <= 1 || isTransitioning.current) return;
-    setActiveIndex((prev) => getRealIndex(prev + 1));
-  };
-
-  const handlePrevItem = () => {
-    if (popularServices.length <= 1 || isTransitioning.current) return;
-    setActiveIndex((prev) => getRealIndex(prev - 1));
-  };
-
-  // Get the array of items to display with proper infinite scrolling
-  const getDisplayItems = () => {
-    if (!popularServices.length) return [];
-    if (popularServices.length === 1) return [...popularServices];
-
-    // Create a wrapping effect by adding items from both ends
-    // This creates a natural infinite scrolling effect
-    const itemsToWrap = Math.min(2, popularServices.length);
-
-    // Get wrap-around items from end to prepend
-    const wrappedBefore = popularServices.slice(-itemsToWrap);
-
-    // Get wrap-around items from beginning to append
-    const wrappedAfter = popularServices.slice(0, itemsToWrap);
-
-    // Return the complete wrapped array with all items
-    return [...wrappedBefore, ...popularServices, ...wrappedAfter];
-  };
-
-  // Calculate the visual index in our display array
-  const getDisplayIndex = (index: number): number => {
-    if (popularServices.length <= 1) return 0;
-
-    // Add wrapping offset to account for the prepended items
-    const itemsToWrap = Math.min(2, popularServices.length);
-    return getRealIndex(index) + itemsToWrap;
-  };
-
-  // Calculate position for the carousel to center active item
-  const getCarouselTransform = () => {
-    if (!containerWidth || popularServices.length === 0) return { transform: 'translateX(0)' };
-
-    // If only one item, center it
-    if (popularServices.length === 1) {
-      const centerOffset = (containerWidth - cardWidth) / 2;
-      return { transform: `translateX(${centerOffset}px)` };
-    }
-
-    // For multiple items, calculate position to center the active one
-    const totalWidth = cardWidth + cardMargin;
-    const centerOffset = (containerWidth - cardWidth) / 2;
-
-    // Use the display index which includes our wrapped items
-    const displayIndex = getDisplayIndex(activeIndex);
-    const activeOffset = displayIndex * totalWidth;
-
-    return {
-      transform: `translateX(${centerOffset - activeOffset}px)`,
-    };
-  };
-
-  // Determine if an item is active
-  const isItemActive = (index: number): boolean => {
-    if (popularServices.length <= 1) return index === 0;
-
-    // Get the target index in our display array
-    const targetIndex = getDisplayIndex(activeIndex);
-    return index === targetIndex;
-  };
-
-  // Mouse/Touch event handlers
-  const handleDragStart = (clientX: number) => {
-    if (isTransitioning.current) return;
-
-    setIsDragging(true);
-    dragStartX.current = clientX;
-    dragCurrentX.current = clientX;
-
-    // Clear autoplay during dragging
-    if (autoplayTimerRef.current) {
-      clearInterval(autoplayTimerRef.current);
-    }
-  };
-
-  const handleDragMove = (clientX: number) => {
-    if (!isDragging) return;
-    dragCurrentX.current = clientX;
-  };
-
-  const handleDragEnd = () => {
-    if (!isDragging) return;
-
-    // Calculate drag distance and direction
-    const dragDistance = dragCurrentX.current - dragStartX.current;
-
-    // Only change slide if drag was significant enough
-    if (Math.abs(dragDistance) > 80 && popularServices.length > 1) {
-      if (dragDistance > 0) {
-        handlePrevItem();
-      } else {
-        handleNextItem();
-      }
-    }
-
-    setIsDragging(false);
-  };
-
-  // Mouse event handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    handleDragStart(e.clientX);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    handleDragMove(e.clientX);
-  };
-
-  const handleMouseUp = () => {
-    handleDragEnd();
-  };
-
-  const handleMouseLeave = () => {
-    if (isDragging) {
-      handleDragEnd();
-    }
+  const handleMouseLeave = useCallback(() => {
     setIsHovering(false);
-  };
-
-  const handleMouseEnter = () => {
-    setIsHovering(true);
-  };
-
-  // Touch event handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    handleDragStart(touch.clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    handleDragMove(touch.clientX);
-  };
-
-  const handleTouchEnd = () => {
-    handleDragEnd();
-  };
+    if (autoplayRef.current) {
+      autoplayRef.current.play();
+    }
+  }, []);
 
   // Don't render if no services
   if (!popularServices || popularServices.length === 0) {
     return null;
   }
 
-  // Determine if navigation controls should be shown
   const showNavigation = popularServices.length > 1;
-
-  // Get the display items with proper wrapping
-  const displayItems = getDisplayItems();
-
-  // The wrapping offset - number of items added before the original array
-  const wrappingOffset = Math.min(2, popularServices.length);
 
   return (
     <div
-      className="relative w-full py-10 overflow-hidden"
-      ref={carouselContainerRef}
+      className="relative w-full py-10"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Navigation controls - left arrow */}
       {showNavigation && (
         <motion.div
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-20"
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 pointer-events-none"
           initial={{ opacity: 0, x: -20 }}
           animate={{
             opacity: isHovering ? 1 : 0,
             x: isHovering ? 0 : -20,
           }}
-          transition={{ duration: 0.3 }}
+          transition={{ 
+            duration: 0.3,
+            ease: "easeOut"
+          }}
         >
           <motion.button
-            onClick={handlePrevItem}
-            className="p-3 rounded-full bg-[#252A32]/80 backdrop-blur-sm hover:bg-[#353A42]/80 transition-all text-white shadow-lg"
+            onClick={scrollPrev}
+            className="pointer-events-auto p-3 rounded-full bg-[#252A32]/80 backdrop-blur-sm hover:bg-[#353A42]/80 transition-all text-white shadow-lg"
             aria-label="Предыдущая услуга"
             whileHover={{ scale: 1.1, backgroundColor: 'rgba(59, 130, 246, 0.2)' }}
             whileTap={{ scale: 0.95 }}
+            onMouseEnter={handleMouseEnter}
           >
             <ChevronLeft size={24} />
           </motion.button>
@@ -564,127 +508,88 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
       )}
 
       {/* Main carousel container */}
-      <div className="relative h-[470px] overflow-hidden" style={{ touchAction: 'pan-y' }}>
-        <motion.div
-          className="absolute left-0 right-0 top-1/2 -translate-y-1/2 flex no-scrollbar"
-          style={{
-            cursor: isDragging ? 'grabbing' : 'grab',
-          }}
-          animate={getCarouselTransform()}
-          transition={{
-            type: 'spring',
-            stiffness: 300,
-            damping: 25,
-            onStart: () => {
-              isTransitioning.current = true;
-            },
-            onComplete: () => {
-              isTransitioning.current = false;
-            },
-          }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          {displayItems.map((service, index) => {
-            // Calculate the original index in the popularServices array
-            let originalIndex;
-            if (index < wrappingOffset) {
-              // It's a wrapped item from the end
-              originalIndex = popularServices.length - wrappingOffset + index;
-            } else if (index >= wrappingOffset + popularServices.length) {
-              // It's a wrapped item from the beginning
-              originalIndex = index - wrappingOffset - popularServices.length;
-            } else {
-              // It's a regular item from the original array
-              originalIndex = index - wrappingOffset;
-            }
+      <div className="embla h-[470px] py-5" ref={emblaRef}>
+        <div className="embla__container">
+          {duplicatedServices.map((service, slideIndex) => {
+            const serviceIndex = getServiceIndex(slideIndex);
+            const isActive = selectedIndex === serviceIndex;
 
             return (
-              <motion.div
-                key={`${service.id}-${index}`}
-                className="flex-shrink-0 px-4"
-                onClick={(e) => {
-                  if (!isDragging && !isTransitioning.current) {
-                    if (isItemActive(index)) {
-                      // If clicking on active item, do nothing - let the Link handle navigation
-                      return;
-                    } else {
-                      // If clicking on non-active item, prevent default navigation and just scroll
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setActiveIndex(originalIndex);
-                    }
-                  }
-                }}
-                initial={{ opacity: 0, y: 30 }}
-                animate={hasMounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                transition={{
-                  duration: 0.5,
-                  delay: Math.min(0.1 * index, 0.4),
-                }}
-              >
-                <CarouselItem service={service} isActive={isItemActive(index)} />
-              </motion.div>
+              <div key={`${service.id}-${slideIndex}`} className="embla__slide">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={hasMounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+                  transition={{
+                    duration: 0.5,
+                    delay: Math.min(0.1 * serviceIndex, 0.4),
+                  }}
+                >
+                  <CarouselItem 
+                    service={service} 
+                    isActive={isActive}
+                    onClick={() => handleCardClick(slideIndex)}
+                  />
+                </motion.div>
+              </div>
             );
           })}
-        </motion.div>
+        </div>
       </div>
 
       {/* Navigation controls - right arrow */}
       {showNavigation && (
         <motion.div
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20"
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 pointer-events-none"
           initial={{ opacity: 0, x: 20 }}
           animate={{
             opacity: isHovering ? 1 : 0,
             x: isHovering ? 0 : 20,
           }}
-          transition={{ duration: 0.3 }}
+          transition={{ 
+            duration: 0.3,
+            ease: "easeOut"
+          }}
         >
           <motion.button
-            onClick={handleNextItem}
-            className="p-3 rounded-full bg-[#252A32]/80 backdrop-blur-sm hover:bg-[#353A42]/80 transition-all text-white shadow-lg"
+            onClick={scrollNext}
+            className="pointer-events-auto p-3 rounded-full bg-[#252A32]/80 backdrop-blur-sm hover:bg-[#353A42]/80 transition-all text-white shadow-lg"
             aria-label="Следующая услуга"
             whileHover={{ scale: 1.1, backgroundColor: 'rgba(59, 130, 246, 0.2)' }}
             whileTap={{ scale: 0.95 }}
+            onMouseEnter={handleMouseEnter}
           >
             <ChevronRight size={24} />
           </motion.button>
         </motion.div>
       )}
 
-      {/* Pagination indicators - only show if multiple services */}
+      {/* Pagination indicators */}
       {showNavigation && (
         <div className="flex justify-center mt-6 space-x-2">
           {popularServices.map((_, index) => (
             <motion.button
               key={index}
-              onClick={() => setActiveIndex(index)}
+              onClick={() => scrollTo(index)}
               aria-label={`Перейти к услуге ${index + 1}`}
               className="relative h-2 rounded-full overflow-hidden"
               initial={{ width: 8 }}
               animate={{
-                width: index === getRealIndex(activeIndex) ? 24 : 8,
-                backgroundColor: index === getRealIndex(activeIndex) ? '#3B82F6' : '#4B5563',
+                width: index === selectedIndex ? 24 : 8,
+                backgroundColor: index === selectedIndex ? '#3B82F6' : '#4B5563',
               }}
               whileHover={{
-                width: index === getRealIndex(activeIndex) ? 24 : 16,
-                backgroundColor: index === getRealIndex(activeIndex) ? '#3B82F6' : '#6B7280',
+                width: index === selectedIndex ? 24 : 16,
+                backgroundColor: index === selectedIndex ? '#3B82F6' : '#6B7280',
               }}
               transition={{ duration: 0.3 }}
             >
-              {index === getRealIndex(activeIndex) && (
+              {index === selectedIndex && (
                 <motion.div
                   className="absolute inset-0 bg-blue-400/50"
                   initial={{ x: '-100%' }}
                   animate={{ x: '100%' }}
                   transition={{
-                    duration: 5, // Match autoplay timer
+                    duration: 5,
                     repeat: Infinity,
                     ease: 'linear',
                     repeatDelay: 0,

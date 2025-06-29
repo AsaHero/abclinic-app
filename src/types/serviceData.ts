@@ -63,7 +63,8 @@ export const serviceCategories: ServiceCategory[] = [
       'Современное восстановление зубов с использованием инновационных материалов и технологий. Мы специализируемся на минимально инвазивном подходе, сохраняя максимум здоровых тканей.',
   },
   { id: 'surgery', title: 'Хирургия', requiresConsultation: true },
-  { id: 'aesthetic', title: 'Эстетическая стоматология', requiresConsultation: true },
+  { id: 'aesthetic', title: 'Эстетика и ровные зубы', requiresConsultation: true },
+  { id: 'implantation', title: 'Удаление и имплантация', requiresConsultation: true },
   // { id: 'endodontics', title: 'Эндодонтия', requiresConsultation: true },
   // { id: 'orthopedics', title: 'Ортопедия', requiresConsultation: true },
   // { id: 'orthodontics', title: 'Ортодонтия', requiresConsultation: true },
@@ -280,6 +281,56 @@ export const allServices: PriceItem[] = [
         question: 'Можно ли начать лечение сразу после диагностики?',
         answer:
           'В некоторых случаях да, особенно если требуется неотложное лечение. Однако обычно мы рекомендуем отдельный визит для начала лечения после полного анализа.',
+      },
+    ],
+  },
+  {
+    id: 'consult-online',
+    name: 'Online консультация',
+    price: 300000,
+    category: 'consultation',
+    popular: false,
+    duration: '60-90 мин',
+    description: 'C чашечкой кофе.',
+    detailedDescription: `
+## Что такое первичная консультация
+
+> Это не лечение зубов.
+> Это прояснение ситуации — для нас обоих.
+
+
+## Вы получите понимание:
+- Что приблизительно происходит
+- Какие у вас есть варианты
+- Сколько времени это может занять
+- Соответствует ли это вашему видению, ожиданиям и бюджету
+
+## Почему это важно
+> Этот небольшой шаг экономит нам обоим время, энергию и предотвращает недопонимание.
+
+И это в что мы глубоко верим.
+
+Вы получаете ясность и направление.
+Мы получаем точность и планирование.
+И вместе мы избегаем самой распространенной проблемы в стоматологии —
+> Пустой траты времени и неправильных ожиданий.
+    `,
+    requiresConsultation: false,
+    faqs: [
+      {
+        question: 'Будут ли меня лечить во время консультации?',
+        answer:
+          'Нет, первичная консультация не включает лечение. Это встреча для понимания ситуации и планирования.',
+      },
+      {
+        question: 'Нужно ли приносить с собой снимки?',
+        answer:
+          'Если у вас есть недавние снимки, их можно принести. Если нет, мы определим, нужны ли они, в ходе консультации.',
+      },
+      {
+        question: 'Можно ли сразу после консультации перейти к лечению?',
+        answer:
+          'В большинстве случаев требуется отдельная диагностика. Некоторые простые процедуры могут быть выполнены после диагностики в тот же день.',
       },
     ],
   },
@@ -634,6 +685,49 @@ E.max отличается исключительной прочностью, н
   },
 ];
 
+export const extraContent = [
+  {
+    type: "video",
+    src: "/videos/cleaning.MP4",
+    desc: "Чистка не есть отбеливание"
+  },
+  {
+    type: "video",
+    src: "/videos/tour.mp4",
+    desc: "Тур по клинике"
+  },
+  {
+    type: "video",
+    src: "/videos/hygene.MP4",
+    desc: "отрывки с рабочего процесса"
+  },
+  {
+    type: "image",
+    src: "/images/timeline/1936.jpg",
+    desc: "1936"
+  },
+  {
+    type: "image",
+    src: "/images/timeline/2018.jpg",
+    desc: "2018"
+  },
+  {
+    type: "image",
+    src: "/images/timeline/2022.jpg",
+    desc: "2022"
+  },
+  {
+    type: "image",
+    src: "/images/timeline/2020.jpg",
+    desc: "2020"
+  },
+  {
+    type: "image",
+    src: "/images/timeline/2019.jpg",
+    desc: "2019"
+  },
+]
+
 // Helper function to get services by category
 export const getServicesByCategory = (categoryId: string): PriceItem[] => {
   if (categoryId === 'all') {
@@ -692,3 +786,5 @@ export const requiresConsultation = (service: PriceItem): boolean => {
   const category = serviceCategories.find((cat) => cat.id === service.category);
   return category?.requiresConsultation || false;
 };
+
+
