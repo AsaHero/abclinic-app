@@ -8,26 +8,33 @@ export interface PriceItem {
   price: number;
   popular?: boolean;
   description?: string;
-  detailedDescription?: string; // NEW: Added for extended descriptions
-  duration?: string; // Optional duration for the service
+  detailedDescription?: string;
+  duration?: string;
   category: string;
-  categories?: string[]; // NEW: Added for multiple categories
-  requiresConsultation?: boolean; // Flag to indicate if consultation is required before this service
-  isSpecialOffer?: boolean; // Flag to indicate special offers
-  includesConsultation?: boolean; // Flag to indicate if consultation is included in this service
-  benefits?: string[]; // NEW: Added for listing benefits
+  categories?: string[];
+  requiresConsultation?: boolean;
+  isSpecialOffer?: boolean;
+  includesConsultation?: boolean;
+  benefits?: string[];
   process?: {
-    // NEW: Added for outlining the process
     step: number;
     title: string;
     description: string;
   }[];
-  suitableFor?: string[]; // NEW: Added for who the service is ideal for
+  suitableFor?: string[];
   faqs?: {
-    // NEW: Added for frequently asked questions
     question: string;
     answer: string;
   }[];
+  
+  // NEW: Media fields for sidebar
+  beforeAfterImages?: {
+    before: string;
+    after: string;
+    description?: string;
+  }[];
+  serviceVideo?: string;
+  galleryImages?: string[];
 }
 
 export interface ServiceCategory {
@@ -198,6 +205,24 @@ export const allServices: PriceItem[] = [
 И вместе мы избегаем самой распространенной проблемы в стоматологии —
 > Пустой траты времени и неправильных ожиданий.
     `,
+    serviceVideo: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    beforeAfterImages: [
+      {
+        before: '/images/case.JPG',
+        after: '/images/case_1.JPG',
+        description: 'Реставрация переднего зуба керамической коронкой E.max. Результат через 6 месяцев после установки.'
+      },
+      {
+        before: '/images/case_2.JPG',
+        after: '/images/case_1.JPG',
+        description: 'Реставрация переднего зуба керамической коронкой E.max. Результат через 6 месяцев после установки.'
+      }
+    ],
+    galleryImages: [
+      '/images/case.JPG',
+      '/images/case_1.JPG',
+      '/images/case_2.JPG',
+    ],
     requiresConsultation: false,
     faqs: [
       {
@@ -397,6 +422,24 @@ export const allServices: PriceItem[] = [
 И делать с ясностью.
     `,
     requiresConsultation: false,
+    serviceVideo: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    beforeAfterImages: [
+      {
+        before: '/images/case.JPG',
+        after: '/images/case_1.JPG',
+        description: 'Реставрация переднего зуба керамической коронкой E.max. Результат через 6 месяцев после установки.'
+      },
+      {
+        before: '/images/case_2.JPG',
+        after: '/images/case_1.JPG',
+        description: 'Реставрация переднего зуба керамической коронкой E.max. Результат через 6 месяцев после установки.'
+      }
+    ],
+    galleryImages: [
+      '/images/case.JPG',
+      '/images/case_1.JPG',
+      '/images/case_2.JPG',
+    ],
     faqs: [
       {
         question: 'Чем поддерживающая гигиена отличается от первичной?',
@@ -685,48 +728,6 @@ E.max отличается исключительной прочностью, н
   },
 ];
 
-export const extraContent = [
-  {
-    type: "video",
-    src: "/videos/cleaning.MP4",
-    desc: "Чистка не есть отбеливание"
-  },
-  {
-    type: "video",
-    src: "/videos/tour.mp4",
-    desc: "Тур по клинике"
-  },
-  {
-    type: "video",
-    src: "/videos/hygene.MP4",
-    desc: "отрывки с рабочего процесса"
-  },
-  {
-    type: "image",
-    src: "/images/timeline/1936.jpg",
-    desc: "1936"
-  },
-  {
-    type: "image",
-    src: "/images/timeline/2018.jpg",
-    desc: "2018"
-  },
-  {
-    type: "image",
-    src: "/images/timeline/2022.jpg",
-    desc: "2022"
-  },
-  {
-    type: "image",
-    src: "/images/timeline/2020.jpg",
-    desc: "2020"
-  },
-  {
-    type: "image",
-    src: "/images/timeline/2019.jpg",
-    desc: "2019"
-  },
-]
 
 // Helper function to get services by category
 export const getServicesByCategory = (categoryId: string): PriceItem[] => {

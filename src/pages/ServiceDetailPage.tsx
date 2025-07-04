@@ -1,11 +1,12 @@
 // src/pages/ServiceDetailPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkAlert from 'remark-github-blockquote-alert';
 import remarkBreaks from 'remark-breaks';
+import { getHiddenPixels } from '@/utils/getHiddenPixels';
 
 import {
   ArrowLeft,
@@ -26,16 +27,24 @@ import {
   serviceCategories,
   getRelatedServices,
   requiresConsultation,
-  extraContent
 } from '../types/serviceData';
 import HowItWorksModal from '../components/services/HowItWorksModal';
 import ContactWithUs from '@/components/common/ContactWithUs';
+
+// Import new media components
+import BeforeAfterGallery from '../components/services/BeforeAfterGallery';
+import ServiceVideo from '../components/services/ServiceVideo';
+import ImageGallery from '../components/services/ImageGallery';
+import { getUnscrolledPixels } from '@/utils/getUnscrolledPixels';
 
 const ServiceDetailPage: React.FC = () => {
   const { serviceId } = useParams<{ serviceId: string }>();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isHowItWorksModalOpen, setIsHowItWorksModalOpen] = useState(false);
+  const desc = useRef<HTMLDivElement>(null);
+  const sidebar = useRef<HTMLDivElement>(null);
+  const [syncScroll, setSync] = useState(false);
 
   // Find the service from our data
   const service = allServices.find((s) => s.id === serviceId);
@@ -67,6 +76,33 @@ const ServiceDetailPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [service, isLoading, navigate]);
 
+  useEffect(() => {
+    const offsetDesc = (e) => {
+      if (desc.current && sidebar.current) {
+        const descHiddenPixels = getHiddenPixels(desc.current);
+        const sidebarHiddenPixels = getUnscrolledPixels(sidebar.current); 
+
+        const descTop = descHiddenPixels.top;
+        const descBtm = descHiddenPixels.bottom;
+        const sideTop = sidebarHiddenPixels.top;
+        const sideBtm = sidebarHiddenPixels.bottom;
+
+        if (descTop < sideTop) {
+          sidebar.current.scrollBy({top: descTop-sideTop})
+        } else if (descBtm < sideBtm) {
+          sidebar.current.scrollBy({top: sideBtm-descBtm})
+        }
+        
+      }
+      
+      
+    }
+    // Simulate loading for smoother transitions
+    window.addEventListener("scroll", offsetDesc);
+
+    return () => window.removeEventListener("scroll", offsetDesc);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-[#171b21]">
@@ -78,6 +114,7 @@ const ServiceDetailPage: React.FC = () => {
   if (!service) {
     return null; // Will redirect in useEffect
   }
+  
 
   return (
     <div className="min-h-screen pt-33 bg-[#171b21] text-white">
@@ -334,7 +371,7 @@ const ServiceDetailPage: React.FC = () => {
         <div className="container mx-auto px-4 md:px-8 lg:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             {/* Main content - 2 columns */}
-            <div className="lg:col-span-2 space-y-16">
+            <div className="lg:col-span-2 space-y-16" ref={desc}>
               {/* Description Section */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -508,48 +545,73 @@ const ServiceDetailPage: React.FC = () => {
               )}
             </div>
 
-            {/* Sidebar - 1 column with enhanced visual elements */}
-            <motion.div>
-              <div className="bg-gradient-to-br from-[#1E2329] to-[#252A32] rounded-xl overflow-hidden shadow-xl shadow-black/20">
-                <div className="h-1 bg-gradient-to-r from-blue-500 to-teal-400"></div>
-                <div className="p-8">
-                  <h3 className="text-2xl font-medium mb-6 text-white">Похожие услуги</h3>
-                  <div className="space-y-4">
-                    {relatedServices.map((relatedService) => (
-                      <Link
-                        key={relatedService.id}
-                        to={`/services/${relatedService.id}`}
-                        className="block p-5 bg-gradient-to-br from-white/5 to-white/8 rounded-xl hover:from-white/8 hover:to-white/10 transition-all duration-300 border border-white/5 group"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-medium text-white mb-2 group-hover:text-blue-400 transition-colors">
-                              {relatedService.name}
-                            </h4>
-                            <div className="flex items-center text-sm text-gray-400">
-                              <Clock size={14} className="mr-1" />
-                              <span>{relatedService.duration}</span>
+            {/* Sticky Scrollable Sidebar - 1 column with enhanced visual elements and media */}
+            <motion.div className="lg:sticky lg:top-16 lg:self-start">
+              <div 
+                className="lg:max-h-[calc(100vh-6rem)] lg:overflow-hidden space-y-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                ref={sidebar}
+              >
+                {/* Related Services - only show if there are related services */}
+                {relatedServices.length > 0 && (
+                  <div className="bg-gradient-to-br from-[#1E2329] to-[#252A32] rounded-xl overflow-hidden shadow-xl shadow-black/20">
+                    <div className="h-1 bg-gradient-to-r from-blue-500 to-teal-400"></div>
+                    <div className="p-5">
+                      <h3 className="text-lg font-medium mb-4 text-white">Похожие услуги</h3>
+                      <div className="space-y-3">
+                        {relatedServices.map((relatedService) => (
+                          <Link
+                            key={relatedService.id}
+                            to={`/services/${relatedService.id}`}
+                            className="block p-3 bg-gradient-to-br from-white/5 to-white/8 rounded-lg hover:from-white/8 hover:to-white/10 transition-all duration-300 border border-white/5 group"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-white text-sm mb-1 group-hover:text-blue-400 transition-colors line-clamp-2">
+                                  {relatedService.name}
+                                </h4>
+                                <div className="flex items-center text-xs text-gray-400">
+                                  <Clock size={12} className="mr-1" />
+                                  <span>{relatedService.duration}</span>
+                                </div>
+                              </div>
+                              <div className="px-2 py-1 rounded text-xs bg-white/10 text-white ml-2 flex-shrink-0">
+                                {relatedService.price.toLocaleString('ru-RU')} сум
+                              </div>
                             </div>
-                          </div>
-                          <div className="px-4 py-2 rounded-lg bg-white/10 text-white">
-                            {relatedService.price.toLocaleString('ru-RU')} сум
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
+                          </Link>
+                        ))}
 
-                    <Link
-                      to={`/services?category=${service.category}`}
-                      className="flex items-center justify-center py-3 text-blue-400 hover:text-blue-300 transition-colors group"
-                    >
-                      <span>Все услуги категории</span>
-                      <ChevronRight
-                        size={16}
-                        className="ml-1 transition-transform group-hover:translate-x-1"
-                      />
-                    </Link>
+                        <Link
+                          to={`/services?category=${service.category}`}
+                          className="flex items-center justify-center py-2 text-blue-400 hover:text-blue-300 transition-colors group text-sm"
+                        >
+                          <span>Все услуги категории</span>
+                          <ChevronRight
+                            size={14}
+                            className="ml-1 transition-transform group-hover:translate-x-1"
+                          />
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Media Sections - conditionally rendered */}
+                
+                {/* Before/After Gallery */}
+                {service.beforeAfterImages && service.beforeAfterImages.length > 0 && (
+                  <BeforeAfterGallery images={service.beforeAfterImages} />
+                )}
+
+                {/* Service Video */}
+                {service.serviceVideo && (
+                  <ServiceVideo videoUrl={service.serviceVideo} />
+                )}
+
+                {/* Image Gallery */}
+                {service.galleryImages && service.galleryImages.length > 0 && (
+                  <ImageGallery images={service.galleryImages} />
+                )}
               </div>
             </motion.div>
           </div>
