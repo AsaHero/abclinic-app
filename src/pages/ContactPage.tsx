@@ -367,11 +367,11 @@ const ContactPage = () => {
 
   // Working hours
   const workingHours = [
-    { day: 'Понедельник', hours: '9:00 – 18:00' },
-    { day: 'Вторник', hours: '9:00 – 18:00' },
-    { day: 'Среда', hours: '9:00 – 18:00' },
-    { day: 'Четверг', hours: '9:00 – 18:00' },
-    { day: 'Пятница', hours: '9:00 – 18:00' },
+    { day: 'Понедельник', hours: '09:00 – 18:00' },
+    { day: 'Вторник', hours: '09:00 – 18:00' },
+    { day: 'Среда', hours: '09:00 – 18:00' },
+    { day: 'Четверг', hours: '09:00 – 18:00' },
+    { day: 'Пятница', hours: '09:00 – 18:00' },
     { day: 'Суббота', hours: '09:00 – 18:00' },
     { day: 'Воскресенье', hours: 'Выходной' },
   ];
@@ -426,8 +426,8 @@ const ContactPage = () => {
           </ContactInfoCard>
 
           <ContactInfoCard icon={Mail} title="Email" delay={0.3}>
-            <a href="mailto:info@abclinic.uz" className="hover:text-white transition-colors">
-              info@abclinic.uz
+            <a href="mailto:abclinicuz@gmail.com" className="hover:text-white transition-colors">
+              abclinicuz@gmail.com
             </a>
           </ContactInfoCard>
 
@@ -458,8 +458,7 @@ const ContactPage = () => {
           </ContactInfoCard>
 
           <ContactInfoCard icon={Clock} title="Режим работы" delay={0.5}>
-            <p className="mb-2">Пн-Пт: 9:00 – 18:30</p>
-            <p>Сб: 10:00 – 17:00</p>
+            <p className="mb-2">Пн-Cб: 9:00 – 18:00</p>
           </ContactInfoCard>
         </div>
       </div>
