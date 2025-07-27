@@ -221,7 +221,7 @@ const HeroSection = () => {
                   asChild
                   className="bg-white hover:bg-white/90 text-primary-900 rounded-full w-1/2 sm:w-1/3 px-6 py-6 text-base font-medium transition-all duration-300 hover:shadow-lg group overflow-hidden relative"
                 >
-                  <Link to="/contacts" className="flex items-center gap-2 ">
+                  <Link to="/contact" className="flex items-center gap-2 ">
                     <span>Записаться</span>
                     <motion.div className="relative" initial={{ x: 0 }} whileHover={{ x: 5 }}>
                       <ArrowRight size={18} className="stroke-2" />
