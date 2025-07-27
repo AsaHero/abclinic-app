@@ -164,15 +164,14 @@ const Footer = () => {
 
             <ContactItem icon={Mail} delay={0.3}>
               <p className="font-medium">Email:</p>
-              <a href="mailto:info@abclinic.uz" className="hover:text-white transition-colors">
-                info@abclinic.uz
+              <a href="mailto:abclinic.uz@gmail.com" className="hover:text-white transition-colors">
+                abclinic.uz@gmail.com
               </a>
             </ContactItem>
 
             <ContactItem icon={Clock} delay={0.4}>
               <p className="font-medium">Режим работы:</p>
-              <p>Пн-Пт: 9:00 – 18:30</p>
-              <p>Сб: 10:00 – 17:00</p>
+              <p>Пн-Cб: 9:00 – 18:00</p>
             </ContactItem>
           </div>
         </div>
