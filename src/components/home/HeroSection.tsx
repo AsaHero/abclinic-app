@@ -92,6 +92,7 @@ function translateValueWithConstraints<T>(
 ): MotionValue<T> {
   return useTransform(value, input, output);
 }
+
 const HeroSection = () => {
   const sectionRef = useRef(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -104,8 +105,9 @@ const HeroSection = () => {
   });
 
   const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '20%']);
-  const contentOpacity = translateValueWithConstraints(scrollYProgress, [0, 0.7], [1, 0]);
-  const contentScale = translateValueWithConstraints(scrollYProgress, [0, 0.7], [1, 0.95]);
+  // REMOVED problematic opacity and scale transforms that cause white flashes
+  // const contentOpacity = translateValueWithConstraints(scrollYProgress, [0, 0.7], [1, 0]);
+  // const contentScale = translateValueWithConstraints(scrollYProgress, [0, 0.7], [1, 0.95]);
   const blur = translateValueWithConstraints(scrollYProgress, [0, 0.7], [0, 5]);
 
   // Handle mouse movement for subtle parallax effects
@@ -169,14 +171,8 @@ const HeroSection = () => {
       {/* Subtle animated overlay pattern */}
       <div className="absolute inset-0 bg-[url('/images/pattern.svg')] bg-repeat opacity-5 mix-blend-soft-light" />
 
-      {/* Content container with enhanced animation */}
-      <motion.div
-        className="relative h-full w-full z-10"
-        style={{
-          opacity: contentOpacity,
-          scale: contentScale,
-        }}
-      >
+      {/* Content container - REMOVED problematic style animations */}
+      <div className="relative h-full w-full z-10">
         <div className="container mx-auto px-4 h-full flex flex-col justify-center items-center text-white">
           <div className="max-w-4xl text-center">
             {/* Enhanced staggered animation for content */}
@@ -274,7 +270,7 @@ const HeroSection = () => {
             />
           </motion.button>
         </motion.div>
-      </motion.div>
+      </div>
     </section>
   );
 };

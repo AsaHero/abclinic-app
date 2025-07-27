@@ -44,14 +44,12 @@ const itemVariants = {
   },
 };
 
-// Removed ScrollCards component definition as it's replaced by CenteredCarousel
-
 const PriceListPage: React.FC = () => {
   // State for active category
   const [activeCategory, setActiveCategory] = useState<string>('all');
 
-  // Loading state for page transitions
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  // SIMPLIFIED loading state - removed opacity dependency
+  const [isContentLoading, setIsContentLoading] = useState<boolean>(false);
 
   // State for search
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -126,26 +124,19 @@ const PriceListPage: React.FC = () => {
 
     // Smooth scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // Fade in the page
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
   }, []);
 
-  // Handle category switch
+  // Handle category switch - SIMPLIFIED without opacity dependency
   const handleCategoryChange = (categoryId: string) => {
     if (activeCategory === categoryId) return; // Don't do anything if clicking the same category
 
     // Create smooth transition between categories
-    setIsLoading(true);
+    setIsContentLoading(true);
 
     // Short delay to allow fade out animation
     setTimeout(() => {
       setActiveCategory(categoryId);
-      setIsLoading(false);
+      setIsContentLoading(false);
 
       // Update URL
       const url = new URL(window.location.href);
@@ -155,18 +146,12 @@ const PriceListPage: React.FC = () => {
         url.searchParams.set('category', categoryId);
       }
       window.history.pushState({}, '', url.toString());
-
-      // Do not auto-scroll to services list when changing categories
     }, 300);
   };
 
   return (
-    <motion.div
-      className="min-h-screen bg-[#171b21] text-white"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: isLoading ? 0 : 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    // REMOVED problematic opacity animation based on loading state
+    <div className="min-h-screen bg-[#171b21] text-white">
       {/* "How it works" modal */}
       <AnimatePresence>
         <HowItWorksModal
@@ -306,7 +291,7 @@ const PriceListPage: React.FC = () => {
               <motion.h2
                 className="text-3xl font-arista-light mb-6 px-4 md:px-0"
                 initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 10 : 0 }}
+                animate={{ opacity: isContentLoading ? 0 : 1, y: isContentLoading ? 10 : 0 }}
                 transition={{ duration: 0.5 }}
               >
                 Популярные услуги
@@ -323,7 +308,7 @@ const PriceListPage: React.FC = () => {
           <motion.div
             className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10"
             initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: isLoading ? 0 : 1, y: isLoading ? 10 : 0 }}
+            animate={{ opacity: isContentLoading ? 0 : 1, y: isContentLoading ? 10 : 0 }}
             transition={{ duration: 0.5 }}
             key={activeCategory} // Re-animate when category changes
           >
@@ -361,7 +346,7 @@ const PriceListPage: React.FC = () => {
             className="space-y-4"
             variants={containerVariants}
             initial="hidden"
-            animate={isLoading ? 'hidden' : 'visible'}
+            animate={isContentLoading ? 'hidden' : 'visible'}
             key={`${activeCategory}-${searchQuery}`} // Re-animate when key params change
           >
             {filteredServices.length > 0 ? (
@@ -519,7 +504,7 @@ const PriceListPage: React.FC = () => {
           </div>
         </section>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

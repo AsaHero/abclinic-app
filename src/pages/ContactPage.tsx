@@ -1,7 +1,17 @@
 // src/pages/ContactPage.tsx
 import React, { useState, useRef } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Clock,
+  Send,
+  CheckCircle,
+  AlertCircle,
+  ChevronDown,
+} from 'lucide-react';
+import { serviceCategories } from '../types/serviceData';
 
 // Premium contact info card component
 const ContactInfoCard = ({ icon: Icon, title, children, delay = 0 }) => {
@@ -21,6 +31,107 @@ const ContactInfoCard = ({ icon: Icon, title, children, delay = 0 }) => {
           <div className="text-gray-400">{children}</div>
         </div>
       </div>
+    </motion.div>
+  );
+};
+
+// Custom Select Component with proper dark theme styling
+const CustomSelect = ({
+  label,
+  name,
+  placeholder,
+  value,
+  onChange,
+  options,
+  error,
+  required = false,
+  delay = 0,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectRef = useRef(null);
+  const isInView = useInView(selectRef, { once: true, amount: 0.2 });
+
+  const handleSelect = (optionValue) => {
+    onChange({
+      target: {
+        name,
+        value: optionValue,
+      },
+    });
+    setIsOpen(false);
+  };
+
+  const selectedOption = options.find((option) => option.value === value);
+
+  return (
+    <motion.div
+      ref={selectRef}
+      className="mb-6 relative"
+      initial={{ opacity: 0, y: 20 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay }}
+    >
+      <label
+        htmlFor={name}
+        className="block text-white/80 text-sm font-medium mb-2 flex items-center"
+      >
+        {label} {required && <span className="text-blue-400 ml-1">*</span>}
+      </label>
+
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-full px-4 py-3 bg-white/5 border ${error ? 'border-red-500/50' : 'border-white/10'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent text-white transition-all backdrop-blur-sm text-left flex items-center justify-between`}
+        >
+          <span className={selectedOption?.value ? 'text-white' : 'text-gray-500'}>
+            {selectedOption?.label || placeholder}
+          </span>
+          <ChevronDown
+            size={16}
+            className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          />
+        </button>
+
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="absolute top-full left-0 right-0 z-50 mt-1 bg-gray-800/95 backdrop-blur-sm border border-white/10 rounded-lg shadow-xl max-h-60 overflow-y-auto"
+            >
+              {options.map((option, index) => (
+                <motion.button
+                  key={option.value}
+                  type="button"
+                  onClick={() => handleSelect(option.value)}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.1, delay: index * 0.02 }}
+                  className={`w-full px-4 py-3 text-left hover:bg-white/10 transition-colors ${
+                    option.value === value ? 'bg-blue-500/20 text-blue-300' : 'text-white'
+                  } ${option.value === '' ? 'text-gray-400' : ''}`}
+                >
+                  {option.label}
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {error && (
+        <motion.p
+          className="mt-1 text-sm text-red-400 flex items-center"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+        >
+          <AlertCircle size={14} className="mr-1" /> {error}
+        </motion.p>
+      )}
     </motion.div>
   );
 };
@@ -131,6 +242,32 @@ const ContactPage = () => {
     }
   };
 
+  // Send form data to backend API
+  const sendToBackend = async (formData) => {
+    const API_URL = 'https://dev.abclinic.uz';
+
+    try {
+      const response = await fetch(`${API_URL}/api/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || `HTTP error! status: ${response.status}`);
+      }
+
+      return result.success;
+    } catch (error) {
+      console.error('Error sending to backend:', error);
+      throw error;
+    }
+  };
+
   // Validate form fields
   const validateForm = () => {
     const newErrors = {
@@ -145,16 +282,23 @@ const ContactPage = () => {
       newErrors.name = 'Имя обязательно для заполнения';
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email обязателен для заполнения';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Пожалуйста, введите корректный email';
-    }
+    // Check that at least one contact method is provided
+    if (!formData.email.trim() && !formData.phone.trim()) {
+      newErrors.email = 'Укажите email или телефон для связи';
+      newErrors.phone = 'Укажите email или телефон для связи';
+    } else {
+      // Validate email if provided
+      if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = 'Пожалуйста, введите корректный email';
+      }
 
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Телефон обязателен для заполнения';
-    } else if (!/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(formData.phone)) {
-      newErrors.phone = 'Пожалуйста, введите корректный номер телефона';
+      // Validate phone if provided
+      if (
+        formData.phone.trim() &&
+        !/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(formData.phone)
+      ) {
+        newErrors.phone = 'Пожалуйста, введите корректный номер телефона';
+      }
     }
 
     if (!formData.service) {
@@ -165,12 +309,12 @@ const ContactPage = () => {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validate form
     const formErrors = validateForm();
-    if (Object.keys(formErrors).length > 0) {
+    if (Object.keys(formErrors).some((key) => formErrors[key])) {
       setErrors(formErrors);
       return;
     }
@@ -178,34 +322,47 @@ const ContactPage = () => {
     // Set form status to sending
     setFormStatus('sending');
 
-    // Simulate form submission
-    setTimeout(() => {
-      // In a real application, you would send the form data to your backend here
-      console.log('Form submitted:', formData);
-      setFormStatus('success');
+    try {
+      // Send form data to backend
+      const success = await sendToBackend(formData);
 
-      // Reset form after 3 seconds
+      if (success) {
+        setFormStatus('success');
+
+        // Reset form after 3 seconds
+        setTimeout(() => {
+          setFormData({
+            name: '',
+            email: '',
+            phone: '',
+            service: '',
+            message: '',
+          });
+          setFormStatus(null);
+        }, 3000);
+      } else {
+        throw new Error('Backend returned failure status');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setFormStatus('error');
+
+      // Reset to form after 3 seconds on error
       setTimeout(() => {
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          service: '',
-          message: '',
-        });
         setFormStatus(null);
       }, 3000);
-    }, 1500);
+    }
   };
 
-  // Service options
+  // Service options from actual service data
   const serviceOptions = [
     { value: '', label: 'Выберите услугу' },
-    { value: 'hygiene', label: 'Гигиена и профилактика' },
-    { value: 'treatment', label: 'Лечение зубов' },
-    { value: 'surgery', label: 'Хирургия' },
-    { value: 'orthodontics', label: 'Ортодонтия' },
-    { value: 'consultation', label: 'Консультация' },
+    ...serviceCategories
+      .filter((category) => category.id !== 'all') // Exclude 'all' category
+      .map((category) => ({
+        value: category.id,
+        label: category.title,
+      })),
   ];
 
   // Working hours
@@ -400,6 +557,19 @@ const ContactPage = () => {
                         </p>
                       </div>
                     )}
+
+                    {formStatus === 'error' && (
+                      <div className="text-center p-6 bg-black/30 rounded-xl border border-red-500/20">
+                        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <AlertCircle size={32} className="text-red-500" />
+                        </div>
+                        <h3 className="text-2xl font-medium text-white mb-2">Ошибка отправки</h3>
+                        <p className="text-gray-300">
+                          Произошла ошибка при отправке формы. Пожалуйста, попробуйте еще раз или
+                          свяжитесь с нами по телефону.
+                        </p>
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -429,7 +599,6 @@ const ContactPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   error={errors.email}
-                  required
                   delay={0.3}
                 />
 
@@ -440,52 +609,24 @@ const ContactPage = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   error={errors.phone}
-                  required
                   delay={0.4}
                 />
 
-                <motion.div
-                  className="mb-6"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isFormInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.6, delay: 0.5 }}
-                >
-                  <label
-                    htmlFor="service"
-                    className="block text-white/80 text-sm font-medium mb-2 flex items-center"
-                  >
-                    Услуга <span className="text-blue-400 ml-1">*</span>
-                  </label>
-                  <select
-                    id="service"
-                    name="service"
-                    value={formData.service}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-white/5 border ${errors.service ? 'border-red-500/50' : 'border-white/10'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent text-white transition-all backdrop-blur-sm appearance-none`}
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'right 1rem center',
-                      backgroundSize: '1rem',
-                    }}
-                  >
-                    {serviceOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.service && (
-                    <motion.p
-                      className="mt-1 text-sm text-red-400 flex items-center"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                    >
-                      <AlertCircle size={14} className="mr-1" /> {errors.service}
-                    </motion.p>
-                  )}
-                </motion.div>
+                <div className="mb-4 -mt-2">
+                  <p className="text-sm text-gray-400">* Укажите email или телефон для связи</p>
+                </div>
+
+                <CustomSelect
+                  label="Услуга"
+                  name="service"
+                  placeholder="Выберите услугу"
+                  value={formData.service}
+                  onChange={handleChange}
+                  options={serviceOptions}
+                  error={errors.service}
+                  required
+                  delay={0.5}
+                />
 
                 <FormInput
                   label="Сообщение"

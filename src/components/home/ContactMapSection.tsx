@@ -31,10 +31,10 @@ const ContactMapSection: React.FC = () => {
       {/* Premium section divider */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent z-10" />
 
-      <div className="h-[600px] lg:h-[700px] w-full relative">
+      <div className="h-[500px] lg:h-[500px] w-full relative">
         {/* Map container with premium styling */}
         <div className="absolute inset-0 w-full h-full overflow-hidden">
-          {/* Google Maps iframe */}
+          {/* Yandex Maps iframe */}
           <iframe
             src="https://yandex.ru/map-widget/v1/?z=12&ol=biz&oid=9426831655"
             width="100%"
@@ -45,7 +45,7 @@ const ContactMapSection: React.FC = () => {
             referrerPolicy="no-referrer-when-downgrade"
             title="Clinic Location"
             className="z-0"
-          ></iframe>
+          />
 
           {/* Optional map overlay for more premium feel */}
           <div className="absolute inset-0 bg-gradient-to-t from-transparent to-primary-900/5 pointer-events-none"></div>

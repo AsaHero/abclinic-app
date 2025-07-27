@@ -1,4 +1,4 @@
-// src/components/sections/TimelineSection.tsx - Updated for new structure
+// src/components/sections/TimelineSection.tsx - Fixed white effect
 import { useRef, useState, useEffect } from 'react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import Timeline from '../timeline/Timeline';
@@ -96,10 +96,10 @@ const TimelineSection = () => {
     offset: ['start end', 'end start'],
   });
 
-  // Transform values based on scroll
+  // Transform values based on scroll - REMOVED problematic opacity animation
   const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '10%']);
-  const containerOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
-  const containerScale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.98, 1, 1, 0.98]);
+  // Removed: const containerOpacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  // Removed: const containerScale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.98, 1, 1, 0.98]);
 
   // Section visibility detection for animation triggers
   const isSectionInView = useInView(sectionRef, { once: true, amount: 0.2 });
@@ -114,14 +114,11 @@ const TimelineSection = () => {
   }, []);
 
   return (
-    <motion.section
+    <section
       id="timeline-section"
       ref={sectionRef}
       className="py-32 md:py-40 bg-primary-900 text-white w-full overflow-hidden relative"
-      style={{
-        opacity: containerOpacity,
-        scale: containerScale,
-      }}
+      // Removed problematic style={{ opacity: containerOpacity, scale: containerScale }}
     >
       {/* Background elements */}
       <GlowingDots />
@@ -188,7 +185,7 @@ const TimelineSection = () => {
           <div className="absolute inset-0 bg-white/10" />
         </motion.div>
       </div>
-    </motion.section>
+    </section>
   );
 };
 
