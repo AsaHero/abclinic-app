@@ -141,155 +141,69 @@ const Footer = () => {
       />
 
       <div className="max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-12 relative z-10">
-        {/* Premium top footer section with logo and quick contact */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-16 pb-16 border-b border-gray-800">
+        {/* Main footer content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-12 pb-12 border-b border-gray-800">
+          {/* Column 1: Logo and Description */}
           <motion.div
-            className="mb-10 lg:mb-0"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.7 }}
           >
-            <Link to="/">
+            <Link to="/" className="inline-block mb-6">
               <img src="/images/logo.png" alt="AB Clinic Logo" className="h-24" />
             </Link>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              Профессиональная медицинская помощь с заботой о вашем здоровье
+            </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <ContactItem icon={Phone} delay={0.2}>
-              <p className="font-medium">Телефон:</p>
-              <a href="tel:+99895122-88-55" className="hover:text-white transition-colors">
-                (+998) 95-122-88-55
-              </a>
-            </ContactItem>
+          {/* Column 2: Contact Information */}
+          <div>
+            <FooterSection title="Контакты" delay={0.1}>
+              <div className="space-y-4">
+                <ContactItem icon={Phone} delay={0.2}>
+                  <p className="text-sm font-medium text-gray-400 mb-1">Телефон:</p>
+                  <a href="tel:+99895122-88-55" className="hover:text-white transition-colors">
+                    (+998) 95-122-88-55
+                  </a>
+                </ContactItem>
 
-            <ContactItem icon={Mail} delay={0.3}>
-              <p className="font-medium">Email:</p>
-              <a href="mailto:abclinic.uz@gmail.com" className="hover:text-white transition-colors">
-                abclinic.uz@gmail.com
-              </a>
-            </ContactItem>
+                <ContactItem icon={Mail} delay={0.3}>
+                  <p className="text-sm font-medium text-gray-400 mb-1">Email:</p>
+                  <a
+                    href="mailto:abclinic.uz@gmail.com"
+                    className="hover:text-white transition-colors break-all"
+                  >
+                    abclinic.uz@gmail.com
+                  </a>
+                </ContactItem>
 
-            <ContactItem icon={Clock} delay={0.4}>
-              <p className="font-medium">Режим работы:</p>
-              <p>Пн-Cб: 9:00 – 18:00</p>
-            </ContactItem>
+                <ContactItem icon={Clock} delay={0.4}>
+                  <p className="text-sm font-medium text-gray-400 mb-1">Режим работы:</p>
+                  <p>Пн-Cб: 9:00 – 18:00</p>
+                </ContactItem>
+
+                <ContactItem icon={MapPin} delay={0.5}>
+                  <p className="text-sm font-medium text-gray-400 mb-1">Адрес:</p>
+                  <p className="mb-1">Ташкент, ул. Нукусс, 88/55</p>
+                  <a
+                    href="https://maps.app.goo.gl/zWmNZtq1TCcv8hG67"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 text-sm inline-block"
+                  >
+                    Показать на карте →
+                  </a>
+                </ContactItem>
+              </div>
+            </FooterSection>
           </div>
-        </div>
 
-        {/* Premium main footer content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
-          {/* About Section */}
-          <FooterSection title="О КЛИНИКЕ" delay={0.2}>
-            <ul className="space-y-3">
-              <li>
-                <FooterLink to="/about" index={0}>
-                  История клиники
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/news" index={1}>
-                  Новости
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/team" index={2}>
-                  Наши специалисты
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/reviews" index={3}>
-                  Отзывы
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/gallery" index={4}>
-                  Фотогалерея
-                </FooterLink>
-              </li>
-            </ul>
-          </FooterSection>
-
-          {/* Services Section */}
-          <FooterSection title="УСЛУГИ КЛИНИКИ" delay={0.3}>
-            <ul className="space-y-3">
-              <li>
-                <FooterLink to="/services/hygiene" index={0}>
-                  Гигиена и профилактика
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/services/treatment" index={1}>
-                  Лечение зубов
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/services/surgery" index={2}>
-                  Хирургия
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/services/orthodontics" index={3}>
-                  Ортодонтия
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/services/children" index={4}>
-                  Детская стоматология
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/services/prices" index={5}>
-                  Прайс-лист
-                </FooterLink>
-              </li>
-            </ul>
-          </FooterSection>
-
-          {/* For Clients Section */}
-          <FooterSection title="ДЛЯ КЛИЕНТОВ" delay={0.4}>
-            <ul className="space-y-3">
-              <li>
-                <FooterLink to="/for-clients/recommendations" index={0}>
-                  Рекомендации
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/for-clients/faq" index={1}>
-                  Частые вопросы
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/for-clients/discounts" index={2}>
-                  Акции и скидки
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/for-clients/insurance" index={3}>
-                  Страхование
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink to="/for-clients/payments" index={4}>
-                  Способы оплаты
-                </FooterLink>
-              </li>
-            </ul>
-          </FooterSection>
-
-          {/* Contact & Social Media Section */}
-          <FooterSection title="КОНТАКТЫ" delay={0.5}>
-            <div className="mb-6">
-              <ContactItem icon={MapPin} delay={0.6}>
-                <p>Ташкент, ул. Нукусс, 88/55</p>
-                <Link to="/contact" className="text-blue-400 hover:text-blue-300 mt-1 inline-block">
-                  Показать на карте
-                </Link>
-              </ContactItem>
-            </div>
-
-            <div className="mb-8">
+          {/* Column 3: Social Media */}
+          <div>
+            <FooterSection title="Мы в социальных сетях" delay={0.2}>
               <motion.p
-                className="text-gray-400 mb-4"
+                className="text-gray-400 text-sm mb-6 leading-relaxed"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.7 }}
@@ -316,14 +230,14 @@ const Footer = () => {
                   delay={1.0}
                 />
               </div>
-            </div>
-          </FooterSection>
+            </FooterSection>
+          </div>
         </div>
 
-        {/* Premium footer bottom section */}
-        <div className="flex flex-col md:flex-row items-center justify-between border-t border-gray-800 pt-8">
+        {/* Bottom section: Copyright and Legal */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <motion.div
-            className="text-sm text-gray-500 mb-4 md:mb-0"
+            className="text-sm text-gray-500 text-center md:text-left"
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.5, delay: 0.8 }}
@@ -331,7 +245,7 @@ const Footer = () => {
             <p>© {new Date().getFullYear()} ABClinic. Все права защищены.</p>
           </motion.div>
 
-          <div className="flex flex-wrap gap-6 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
             <motion.div
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : {}}
@@ -352,7 +266,7 @@ const Footer = () => {
               </Link>
             </motion.div>
 
-            {/* Premium scroll to top button */}
+            {/* Scroll to top button */}
             <motion.button
               onClick={scrollToTop}
               className="flex items-center text-gray-400 hover:text-white transition-colors"
@@ -360,6 +274,7 @@ const Footer = () => {
               animate={isInView ? { opacity: 1 } : {}}
               transition={{ duration: 0.5, delay: 1.1 }}
               whileHover={{ y: -2 }}
+              aria-label="Scroll to top"
             >
               <ArrowUp size={14} className="mr-2" />
               <span>Наверх</span>

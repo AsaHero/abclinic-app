@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sitemap": "SITE_URL=https://abclinic.uz tsx scripts/generate-sitemap.ts"
   },
   "dependencies": {
     "@coreui/icons": "^3.0.1",
@@ -58,6 +59,7 @@
     "postcss": "^8.5.3",
     "prettier": "^3.5.2",
     "tailwindcss": "^4.0.9",
+    "tsx": "^4.20.6",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0"

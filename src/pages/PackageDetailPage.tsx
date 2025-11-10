@@ -182,7 +182,7 @@ const PackageDetailPage = () => {
   useEffect(() => {
     // If package not found, redirect to 404
     if (!packageItem && !isLoading) {
-      navigate('/not-found');
+      navigate('/404');
       return;
     }
 

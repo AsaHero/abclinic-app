@@ -12,6 +12,10 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { serviceCategories } from '../types/serviceData';
+import SeoLite from '@/components/seo/SeoLite';
+
+const SITE = 'https://abclinic.uz';
+const OG_IMAGE = `${SITE}/images/hero.png`;
 
 // Premium contact info card component
 const ContactInfoCard = ({ icon: Icon, title, children, delay = 0 }) => {
@@ -327,6 +331,9 @@ const ContactPage = () => {
       const success = await sendToBackend(formData);
 
       if (success) {
+        (window as any).ym?.(105088457, 'reachGoal', 'contact_form_sent');
+        (window as any).gtag?.('event', 'contact_form_sent', { page: 'contact' });
+
         setFormStatus('success');
 
         // Reset form after 3 seconds
@@ -377,307 +384,349 @@ const ContactPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#171b21] text-white pt-24">
-      {/* Hero section with premium styling */}
-      <div className="relative overflow-hidden bg-primary-900 pb-16">
-        {/* Background elements */}
-        <div className="absolute inset-0 bg-[url('/images/pattern-dot.svg')] bg-repeat opacity-5 pointer-events-none" />
+    <>
+      <SeoLite
+        title="Контакты — abclinic.uz"
+        description="Запишитесь на приём: телефон, email, адрес и режим работы abclinic.uz. Гигиена GBT, эстетика, имплантация."
+        url={`${SITE}/contact`}
+        image={OG_IMAGE}
+      />
 
-        {/* Premium page title with animation */}
-        <div className="max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-12 py-16 relative z-10">
-          <motion.h1
-            className="text-4xl md:text-6xl font-bold mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            Свяжитесь с нами
-          </motion.h1>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Dentist', // or "MedicalClinic"
+            name: 'abclinic.uz',
+            url: SITE,
+            image: OG_IMAGE,
+            telephone: '+998951228855',
+            email: 'abclinicuz@gmail.com',
+            address: {
+              '@type': 'PostalAddress',
+              addressCountry: 'UZ',
+              addressLocality: 'Tashkent',
+              streetAddress: 'ул. Нукусс, 88/55',
+            },
+            geo: { '@type': 'GeoCoordinates', latitude: 41.288424, longitude: 69.27495 },
+            openingHoursSpecification: [
+              {
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                opens: '09:00',
+                closes: '18:00',
+              },
+            ],
+            sameAs: ['https://t.me/abclinic_support', 'https://www.instagram.com/abclinic'],
+          }),
+        }}
+      />
 
-          <motion.div
-            className="h-1 w-24 bg-gradient-to-r from-blue-500 to-blue-400 mb-8"
-            initial={{ width: 0 }}
-            animate={{ width: 96 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-          />
+      <div className="min-h-screen bg-[#171b21] text-white pt-24">
+        {/* Hero section with premium styling */}
+        <div className="relative overflow-hidden bg-primary-900 pb-16">
+          {/* Background elements */}
+          <div className="absolute inset-0 bg-[url('/images/pattern-dot.svg')] bg-repeat opacity-5 pointer-events-none" />
 
-          <motion.p
-            className="text-xl text-gray-300 max-w-2xl"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            Мы готовы ответить на все ваши вопросы и предоставить индивидуальную консультацию.
-            Свяжитесь с нами любым удобным для вас способом или запишитесь на прием онлайн.
-          </motion.p>
-        </div>
-      </div>
-
-      {/* Contact info section with premium cards */}
-      <div
-        ref={sectionRef}
-        className="max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-12 py-16 relative"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <ContactInfoCard icon={Phone} title="Телефон" delay={0.2}>
-            <a href="tel:+99895122-88-55" className="hover:text-white transition-colors">
-              (+998) 95-122-88-55
-            </a>
-          </ContactInfoCard>
-
-          <ContactInfoCard icon={Mail} title="Email" delay={0.3}>
-            <a href="mailto:abclinicuz@gmail.com" className="hover:text-white transition-colors">
-              abclinicuz@gmail.com
-            </a>
-          </ContactInfoCard>
-
-          <ContactInfoCard icon={MapPin} title="Адрес" delay={0.4}>
-            <p className="mb-1">Ташкент, ул. Нукусс, 88/55</p>
-            <a
-              href="https://goo.gl/maps/xxxxxxxxxx"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:text-blue-300 transition-colors inline-flex items-center"
+          {/* Premium page title with animation */}
+          <div className="max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-12 py-16 relative z-10">
+            <motion.h1
+              className="text-4xl md:text-6xl font-bold mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
             >
-              <span>Открыть на карте</span>
-              <svg
-                className="ml-1 w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+              Свяжитесь с нами
+            </motion.h1>
+
+            <motion.div
+              className="h-1 w-24 bg-gradient-to-r from-blue-500 to-blue-400 mb-8"
+              initial={{ width: 0 }}
+              animate={{ width: 96 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            />
+
+            <motion.p
+              className="text-xl text-gray-300 max-w-2xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              Мы готовы ответить на все ваши вопросы и предоставить индивидуальную консультацию.
+              Свяжитесь с нами любым удобным для вас способом или запишитесь на прием онлайн.
+            </motion.p>
+          </div>
+        </div>
+
+        {/* Contact info section with premium cards */}
+        <div
+          ref={sectionRef}
+          className="max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-12 py-16 relative"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <ContactInfoCard icon={Phone} title="Телефон" delay={0.2}>
+              <a href="tel:+998951228855" className="hover:text-white transition-colors">
+                (+998) 95-122-88-55
+              </a>
+            </ContactInfoCard>
+
+            <ContactInfoCard icon={Mail} title="Email" delay={0.3}>
+              <a href="mailto:abclinicuz@gmail.com" className="hover:text-white transition-colors">
+                abclinicuz@gmail.com
+              </a>
+            </ContactInfoCard>
+
+            <ContactInfoCard icon={MapPin} title="Адрес" delay={0.4}>
+              <p className="mb-1">Ташкент, ул. Нукусс, 88/55</p>
+              <a
+                href="https://maps.app.goo.gl/zWmNZtq1TCcv8hG67"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 transition-colors inline-flex items-center"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                ></path>
-              </svg>
-            </a>
-          </ContactInfoCard>
-
-          <ContactInfoCard icon={Clock} title="Режим работы" delay={0.5}>
-            <p className="mb-2">Пн-Cб: 9:00 – 18:00</p>
-          </ContactInfoCard>
-        </div>
-      </div>
-
-      {/* Main content with map and form */}
-      <div className="max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-12 py-16">
-        <div className="flex flex-col lg:flex-row gap-12">
-          {/* Map column */}
-          <motion.div
-            className="w-full lg:w-1/2"
-            initial={{ opacity: 0, x: -30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.3 }}
-          >
-            <h2 className="text-2xl font-bold mb-6">Наше расположение</h2>
-
-            {/* Premium map container */}
-            <div className="rounded-xl overflow-hidden shadow-lg border border-white/10 h-[400px] mb-8">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2997.9393855000076!2d69.27223287910451!3d41.28842365258908!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38ae8b7eac6b3353%3A0xe8351a8ecf2f6f3e!2sabclinic.uz!5e0!3m2!1sen!2sro!4v1740846993568!5m2!1sen!2sro"
-                width="100%"
-                height="100%"
-                style={{ border: 0, filter: 'grayscale(0.3) contrast(1.1)' }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Clinic Location"
-                className="z-0"
-              ></iframe>
-            </div>
-
-            {/* Premium working hours table */}
-            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <h3 className="text-xl font-medium mb-4 flex items-center">
-                <Clock size={18} className="mr-2 text-blue-400" />
-                График работы
-              </h3>
-
-              <div className="space-y-2">
-                {workingHours.map((item, index) => (
-                  <motion.div
-                    key={item.day}
-                    className="flex justify-between py-2 border-b border-white/10 last:border-b-0"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={isInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.4, delay: 0.5 + index * 0.05 }}
-                  >
-                    <span className="text-gray-400">{item.day}</span>
-                    <span className={item.day === 'Воскресенье' ? 'text-red-400' : 'text-white'}>
-                      {item.hours}
-                    </span>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Contact form column */}
-          <motion.div
-            ref={formRef}
-            className="w-full lg:w-1/2"
-            initial={{ opacity: 0, x: 30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.3 }}
-          >
-            <h2 className="text-2xl font-bold mb-6">Запись на прием</h2>
-
-            {/* Premium form container */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-white/10 relative overflow-hidden">
-              {/* Form overlay for success/sending states */}
-              <AnimatePresence>
-                {formStatus && (
-                  <motion.div
-                    className="absolute inset-0 backdrop-blur-sm flex items-center justify-center z-10"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {formStatus === 'sending' && (
-                      <div className="text-center">
-                        <div className="inline-block w-12 h-12 border-4 border-t-blue-500 border-r-blue-500 border-b-transparent border-l-transparent rounded-full animate-spin mb-4"></div>
-                        <p className="text-xl">Отправка формы...</p>
-                      </div>
-                    )}
-
-                    {formStatus === 'success' && (
-                      <div className="text-center p-6 bg-black/30 rounded-xl border border-green-500/20">
-                        <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <CheckCircle size={32} className="text-green-500" />
-                        </div>
-                        <h3 className="text-2xl font-medium text-white mb-2">Форма отправлена!</h3>
-                        <p className="text-gray-300">
-                          Спасибо за ваше обращение. Мы свяжемся с вами в ближайшее время.
-                        </p>
-                      </div>
-                    )}
-
-                    {formStatus === 'error' && (
-                      <div className="text-center p-6 bg-black/30 rounded-xl border border-red-500/20">
-                        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <AlertCircle size={32} className="text-red-500" />
-                        </div>
-                        <h3 className="text-2xl font-medium text-white mb-2">Ошибка отправки</h3>
-                        <p className="text-gray-300">
-                          Произошла ошибка при отправке формы. Пожалуйста, попробуйте еще раз или
-                          свяжитесь с нами по телефону.
-                        </p>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Decorative elements */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-              <div className="absolute bottom-0 left-0 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
-
-              {/* Contact form */}
-              <form onSubmit={handleSubmit} className="relative z-0">
-                <FormInput
-                  label="Имя"
-                  name="name"
-                  placeholder="Введите ваше имя"
-                  value={formData.name}
-                  onChange={handleChange}
-                  error={errors.name}
-                  required
-                  delay={0.2}
-                />
-
-                <FormInput
-                  label="Email"
-                  name="email"
-                  type="email"
-                  placeholder="mail@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  error={errors.email}
-                  delay={0.3}
-                />
-
-                <FormInput
-                  label="Телефон"
-                  name="phone"
-                  placeholder="+998 XX XXX XX XX"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  error={errors.phone}
-                  delay={0.4}
-                />
-
-                <div className="mb-4 -mt-2">
-                  <p className="text-sm text-gray-400">* Укажите email или телефон для связи</p>
-                </div>
-
-                <CustomSelect
-                  label="Услуга"
-                  name="service"
-                  placeholder="Выберите услугу"
-                  value={formData.service}
-                  onChange={handleChange}
-                  options={serviceOptions}
-                  error={errors.service}
-                  required
-                  delay={0.5}
-                />
-
-                <FormInput
-                  label="Сообщение"
-                  name="message"
-                  placeholder="Расскажите, что вас беспокоит или уточните детали вашего обращения..."
-                  value={formData.message}
-                  onChange={handleChange}
-                  textarea
-                  delay={0.6}
-                  error={errors.message}
-                />
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isFormInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.6, delay: 0.7 }}
+                <span>Открыть на карте</span>
+                <svg
+                  className="ml-1 w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  <button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition-all group relative overflow-hidden"
-                  >
-                    <span className="relative z-10 flex items-center">
-                      <span className="mr-2">Отправить заявку</span>
-                      <Send
-                        size={16}
-                        className="inline-block transition-transform group-hover:translate-x-1"
-                      />
-                    </span>
-                    <motion.div
-                      className="absolute inset-0 bg-white/10"
-                      initial={{ x: '-100%' }}
-                      whileHover={{ x: '100%' }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </button>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  ></path>
+                </svg>
+              </a>
+            </ContactInfoCard>
 
-                  <p className="text-sm text-gray-400 mt-4 text-center">
-                    Нажимая на кнопку, вы соглашаетесь с нашей{' '}
-                    <a
-                      href="/privacy"
-                      className="text-blue-400 hover:text-blue-300 transition-colors"
+            <ContactInfoCard icon={Clock} title="Режим работы" delay={0.5}>
+              <p className="mb-2">Пн-Cб: 9:00 – 18:00</p>
+            </ContactInfoCard>
+          </div>
+        </div>
+
+        {/* Main content with map and form */}
+        <div className="max-w-screen-2xl mx-auto px-4 md:px-8 lg:px-12 py-16">
+          <div className="flex flex-col lg:flex-row gap-12">
+            {/* Map column */}
+            <motion.div
+              className="w-full lg:w-1/2"
+              initial={{ opacity: 0, x: -30 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              <h2 className="text-2xl font-bold mb-6">Наше расположение</h2>
+
+              {/* Premium map container */}
+              <div className="rounded-xl overflow-hidden shadow-lg border border-white/10 h-[400px] mb-8">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2997.9393855000076!2d69.27223287910451!3d41.28842365258908!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38ae8b7eac6b3353%3A0xe8351a8ecf2f6f3e!2sabclinic.uz!5e0!3m2!1sen!2sro!4v1740846993568!5m2!1sen!2sro"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0, filter: 'grayscale(0.3) contrast(1.1)' }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Clinic Location"
+                  className="z-0"
+                ></iframe>
+              </div>
+
+              {/* Premium working hours table */}
+              <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                <h3 className="text-xl font-medium mb-4 flex items-center">
+                  <Clock size={18} className="mr-2 text-blue-400" />
+                  График работы
+                </h3>
+
+                <div className="space-y-2">
+                  {workingHours.map((item, index) => (
+                    <motion.div
+                      key={item.day}
+                      className="flex justify-between py-2 border-b border-white/10 last:border-b-0"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={isInView ? { opacity: 1, y: 0 } : {}}
+                      transition={{ duration: 0.4, delay: 0.5 + index * 0.05 }}
                     >
-                      политикой конфиденциальности
-                    </a>
-                  </p>
-                </motion.div>
-              </form>
-            </div>
-          </motion.div>
+                      <span className="text-gray-400">{item.day}</span>
+                      <span className={item.day === 'Воскресенье' ? 'text-red-400' : 'text-white'}>
+                        {item.hours}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Contact form column */}
+            <motion.div
+              ref={formRef}
+              className="w-full lg:w-1/2"
+              initial={{ opacity: 0, x: 30 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              <h2 className="text-2xl font-bold mb-6">Запись на прием</h2>
+
+              {/* Premium form container */}
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-white/10 relative overflow-hidden">
+                {/* Form overlay for success/sending states */}
+                <AnimatePresence>
+                  {formStatus && (
+                    <motion.div
+                      className="absolute inset-0 backdrop-blur-sm flex items-center justify-center z-10"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {formStatus === 'sending' && (
+                        <div className="text-center">
+                          <div className="inline-block w-12 h-12 border-4 border-t-blue-500 border-r-blue-500 border-b-transparent border-l-transparent rounded-full animate-spin mb-4"></div>
+                          <p className="text-xl">Отправка формы...</p>
+                        </div>
+                      )}
+
+                      {formStatus === 'success' && (
+                        <div className="text-center p-6 bg-black/30 rounded-xl border border-green-500/20">
+                          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <CheckCircle size={32} className="text-green-500" />
+                          </div>
+                          <h3 className="text-2xl font-medium text-white mb-2">
+                            Форма отправлена!
+                          </h3>
+                          <p className="text-gray-300">
+                            Спасибо за ваше обращение. Мы свяжемся с вами в ближайшее время.
+                          </p>
+                        </div>
+                      )}
+
+                      {formStatus === 'error' && (
+                        <div className="text-center p-6 bg-black/30 rounded-xl border border-red-500/20">
+                          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertCircle size={32} className="text-red-500" />
+                          </div>
+                          <h3 className="text-2xl font-medium text-white mb-2">Ошибка отправки</h3>
+                          <p className="text-gray-300">
+                            Произошла ошибка при отправке формы. Пожалуйста, попробуйте еще раз или
+                            свяжитесь с нами по телефону.
+                          </p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Decorative elements */}
+                <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
+
+                {/* Contact form */}
+                <form onSubmit={handleSubmit} className="relative z-0">
+                  <FormInput
+                    label="Имя"
+                    name="name"
+                    placeholder="Введите ваше имя"
+                    value={formData.name}
+                    onChange={handleChange}
+                    error={errors.name}
+                    required
+                    delay={0.2}
+                  />
+
+                  <FormInput
+                    label="Email"
+                    name="email"
+                    type="email"
+                    placeholder="mail@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    error={errors.email}
+                    delay={0.3}
+                  />
+
+                  <FormInput
+                    label="Телефон"
+                    name="phone"
+                    placeholder="+998 XX XXX XX XX"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    error={errors.phone}
+                    delay={0.4}
+                  />
+
+                  <div className="mb-4 -mt-2">
+                    <p className="text-sm text-gray-400">* Укажите email или телефон для связи</p>
+                  </div>
+
+                  <CustomSelect
+                    label="Услуга"
+                    name="service"
+                    placeholder="Выберите услугу"
+                    value={formData.service}
+                    onChange={handleChange}
+                    options={serviceOptions}
+                    error={errors.service}
+                    required
+                    delay={0.5}
+                  />
+
+                  <FormInput
+                    label="Сообщение"
+                    name="message"
+                    placeholder="Расскажите, что вас беспокоит или уточните детали вашего обращения..."
+                    value={formData.message}
+                    onChange={handleChange}
+                    textarea
+                    delay={0.6}
+                    error={errors.message}
+                  />
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={isFormInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.6, delay: 0.7 }}
+                  >
+                    <button
+                      type="submit"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition-all group relative overflow-hidden"
+                    >
+                      <span className="relative z-10 flex items-center">
+                        <span className="mr-2">Отправить заявку</span>
+                        <Send
+                          size={16}
+                          className="inline-block transition-transform group-hover:translate-x-1"
+                        />
+                      </span>
+                      <motion.div
+                        className="absolute inset-0 bg-white/10"
+                        initial={{ x: '-100%' }}
+                        whileHover={{ x: '100%' }}
+                        transition={{ duration: 0.5 }}
+                      />
+                    </button>
+
+                    <p className="text-sm text-gray-400 mt-4 text-center">
+                      Нажимая на кнопку, вы соглашаетесь с нашей{' '}
+                      <a
+                        href="/privacy"
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        политикой конфиденциальности
+                      </a>
+                    </p>
+                  </motion.div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

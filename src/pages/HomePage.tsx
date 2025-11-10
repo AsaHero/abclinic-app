@@ -8,6 +8,7 @@ import ServicesSection from '@/components/home/ServicesSection';
 import PhotoGallerySection from '@/components/home/PhotoGallerySection';
 import InfoDocumentsSection from '@/components/home/InfoDocumentsSection';
 import ContactMapSection from '@/components/home/ContactMapSection';
+import SeoLite from '@/components/seo/SeoLite';
 import { timelineData } from '../types/timelineData';
 
 const HomePage = () => {
@@ -18,31 +19,39 @@ const HomePage = () => {
   }, []);
 
   return (
-    // REMOVED problematic opacity animation that can cause white flashes
-    <div className="w-full">
-      {/* Hero Section */}
-      <HeroSection />
+    <>
+      <SeoLite
+        title="abclinic.uz — семейная стоматология в Ташкенте"
+        description="Профессиональная гигиена GBT, эстетика, имплантация. Запишитесь на консультацию."
+        url="https://abclinic.uz/"
+        image="https://abclinic.uz/images/hero.png"
+      />
 
-      {/* History/Timeline Section */}
-      <div id="timeline-section">
-        <TimelineSection />
+      <div className="w-full">
+        {/* Hero Section */}
+        <HeroSection />
+
+        {/* History/Timeline Section */}
+        <div id="timeline-section">
+          <TimelineSection />
+        </div>
+
+        {/* Video Section */}
+        <VideoSection />
+
+        {/* Services Section */}
+        <ServicesSection />
+
+        {/* Photo Gallery Section */}
+        <PhotoGallerySection />
+
+        {/* Information Documents Section */}
+        <InfoDocumentsSection />
+
+        {/* Contact Map Section */}
+        <ContactMapSection />
       </div>
-
-      {/* Video Section */}
-      <VideoSection />
-
-      {/* Services Section */}
-      <ServicesSection />
-
-      {/* Photo Gallery Section */}
-      <PhotoGallerySection />
-
-      {/* Information Documents Section */}
-      <InfoDocumentsSection />
-
-      {/* Contact Map Section */}
-      <ContactMapSection />
-    </div>
+    </>
   );
 };
 

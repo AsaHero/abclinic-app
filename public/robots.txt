@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# не индексируем поиск и любые динамические фильтры (пример)
+Disallow: /?q=
+Disallow: /*?*q=
+
+Sitemap: https://abclinic.uz/sitemap.xml
