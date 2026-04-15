@@ -1,0 +1,12 @@
+services:
+  server:
+    image: ${SERVER_IMAGE}
+    container_name: abclinic-server
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - /opt/abclinic/data:/data
+      - /opt/abclinic/uploads:/uploads
+    env_file:
+      - .env

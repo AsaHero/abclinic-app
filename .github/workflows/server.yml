@@ -48,6 +48,8 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
         with:
@@ -55,22 +57,19 @@ jobs:
           known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
           if_key_exists: replace
 
-      - name: Pull image and restart container
+      - name: Copy compose file to server
         env:
-          IMAGE: ghcr.io/${{ github.repository_owner }}/abclinic-server:latest
+          SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/abclinic-server:latest
+        run: |
+          envsubst < docker-compose.server.yml > /tmp/docker-compose.yml
+          scp /tmp/docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/opt/abclinic/docker-compose.yml
+
+      - name: Pull image and redeploy via compose
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin && \
-            docker pull $IMAGE && \
-            docker stop abclinic-server || true && \
-            docker rm abclinic-server || true && \
             mkdir -p /opt/abclinic/data /opt/abclinic/uploads && \
-            docker run -d \
-              --name abclinic-server \
-              --restart unless-stopped \
-              -p 3001:3001 \
-              -v /opt/abclinic/data:/data \
-              -v /opt/abclinic/uploads:/uploads \
-              --env-file /opt/abclinic/.env \
-              $IMAGE
+            cd /opt/abclinic && \
+            docker compose pull && \
+            docker compose up -d
           "
