@@ -1,4 +1,4 @@
-name: ci/cd
+name: frontend
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: ['main']
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     strategy:
@@ -36,7 +36,7 @@ jobs:
           path: dist/
 
   deploy:
-    needs: build-and-test
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
@@ -55,19 +55,13 @@ jobs:
           if_key_exists: replace
 
       - name: Deploy to Ubuntu Server
-        env:
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          SERVER_IP: ${{ secrets.SERVER_IP }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
           chmod -R 755 dist/
           tar -czf dist.tar.gz dist/
           chmod 644 dist.tar.gz
 
-          # Copy the tar to the server
           scp dist.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ secrets.DEPLOY_PATH }}
 
-          # SSH into the server, extract the files, and set up the deployment
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
             cd ${{ secrets.DEPLOY_PATH }} && \
             rm -rf current && \

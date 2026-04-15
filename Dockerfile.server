@@ -1,0 +1,20 @@
+FROM node:23-slim
+
+WORKDIR /app
+
+# Install build tools required by better-sqlite3 native module
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY server/ ./server/
+
+ENV PORT=3001
+ENV NODE_ENV=production
+ENV DB_PATH=/data/services.db
+ENV UPLOADS_DIR=/uploads
+
+EXPOSE 3001
+
+CMD ["node", "server/index.js"]
