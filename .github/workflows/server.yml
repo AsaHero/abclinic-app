@@ -18,6 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set lowercase owner
+        id: owner
+        run: echo "name=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -29,7 +33,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/abclinic-server
+          images: ghcr.io/${{ steps.owner.outputs.name }}/abclinic-server
           tags: |
             type=raw,value=latest
 
@@ -50,6 +54,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set lowercase owner
+        id: owner
+        run: echo "name=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Install SSH Key
         uses: shimataro/ssh-key-action@v2
         with:
@@ -58,9 +66,9 @@ jobs:
           if_key_exists: replace
 
       - name: Copy compose file to server
-        env:
-          SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/abclinic-server:latest
         run: |
+          SERVER_IMAGE="ghcr.io/${{ steps.owner.outputs.name }}/abclinic-server:latest"
+          export SERVER_IMAGE
           envsubst < docker-compose.server.yml > /tmp/docker-compose.yml
           scp /tmp/docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/opt/abclinic/docker-compose.yml
 
@@ -69,7 +77,6 @@ jobs:
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin && \
             mkdir -p /opt/abclinic/data /opt/abclinic/uploads && \
-            cd /opt/abclinic && \
-            docker compose pull && \
-            docker compose up -d
+            docker compose -f /opt/abclinic/docker-compose.yml pull && \
+            docker compose -f /opt/abclinic/docker-compose.yml up -d
           "
