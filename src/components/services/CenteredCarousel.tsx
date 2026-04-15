@@ -6,7 +6,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Clock, AlertCircle, Check } from 'lucide-react';
-import { serviceCategories, requiresConsultation } from '@/types/serviceData';
+import { requiresConsultation } from '@/types/serviceData';
+import { useQuery } from '@tanstack/react-query';
+import { getCategories } from '@/api/services';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 
@@ -14,14 +16,15 @@ interface CarouselItemProps {
   service: any;
   isActive: boolean;
   onClick: () => void;
+  categories: { id: string; title: string }[];
 }
 
-const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick }) => {
+const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick, categories }) => {
   if (!service) return null;
 
   // Find category safely with optional chaining
   const categoryTitle = service?.category
-    ? serviceCategories.find((cat) => cat.id === service.category)?.title || 'Без категории'
+    ? categories.find((cat) => cat.id === service.category)?.title || 'Без категории'
     : 'Без категории';
 
   // Check if service requires consultation
@@ -264,6 +267,12 @@ interface CenteredCarouselProps {
 }
 
 const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, isNewClient }) => {
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
@@ -524,10 +533,11 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
                     delay: Math.min(0.1 * serviceIndex, 0.4),
                   }}
                 >
-                  <CarouselItem 
-                    service={service} 
+                  <CarouselItem
+                    service={service}
                     isActive={isActive}
                     onClick={() => handleCardClick(slideIndex)}
+                    categories={categories}
                   />
                   
                 </motion.div>

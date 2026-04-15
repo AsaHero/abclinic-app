@@ -11,7 +11,8 @@ import {
   AlertCircle,
   ChevronDown,
 } from 'lucide-react';
-import { serviceCategories } from '../types/serviceData';
+import { useQuery } from '@tanstack/react-query';
+import { getCategories } from '../api/services';
 import SeoLite from '@/components/seo/SeoLite';
 
 const SITE = 'https://abclinic.uz';
@@ -207,6 +208,12 @@ const FormInput = ({
 
 // Main Contact Page Component
 const ContactPage = () => {
+  const { data: apiCategories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -361,15 +368,13 @@ const ContactPage = () => {
     }
   };
 
-  // Service options from actual service data
+  // Service options from API categories
   const serviceOptions = [
     { value: '', label: 'Выберите услугу' },
-    ...serviceCategories
-      .filter((category) => category.id !== 'all') // Exclude 'all' category
-      .map((category) => ({
-        value: category.id,
-        label: category.title,
-      })),
+    ...apiCategories.map((category) => ({
+      value: category.id,
+      label: category.title,
+    })),
   ];
 
   // Working hours

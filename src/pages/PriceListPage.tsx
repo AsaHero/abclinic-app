@@ -1,21 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence, useAnimation } from 'framer-motion';
-import { Link, useParams } from 'react-router-dom';
-import {
-  serviceCategories,
-  allServices,
-  getServicesByCategory,
-  getPopularServices,
-  requiresConsultation,
-} from '../types/serviceData';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { getServices, getCategories } from '../api/services';
+import { requiresConsultation } from '../types/serviceData';
+import type { ServiceCategory } from '../types/serviceData';
 import {
   Calendar,
-  ChevronLeft,
-  ChevronRight,
   Phone,
   Info,
   AlertCircle,
-  CheckCircle2,
   Check,
 } from 'lucide-react';
 import CategoryInformation from '../components/services/CategoryInformation';
@@ -48,101 +42,90 @@ const itemVariants = {
 const SITE = 'https://abclinic.uz';
 const OG_IMAGE = `${SITE}/images/hero.png`;
 
+// "All" pseudo-category always shown first
+const ALL_CATEGORY: ServiceCategory = { id: 'all', title: 'Все услуги' };
+
 const PriceListPage: React.FC = () => {
-  // State for active category
   const [activeCategory, setActiveCategory] = useState<string>('all');
-
-  // SIMPLIFIED loading state - removed opacity dependency
   const [isContentLoading, setIsContentLoading] = useState<boolean>(false);
-
-  // State for search
   const [searchQuery, setSearchQuery] = useState<string>('');
-
-  // State for client type (new or existing)
   const [isNewClient, setIsNewClient] = useState<boolean>(true);
-
-  // State for "How it works" modal
   const [isHowItWorksModalOpen, setIsHowItWorksModalOpen] = useState<boolean>(false);
 
   const controls = useAnimation();
 
-  // Setup page entry animation
-  useEffect(() => {
-    // Start animation sequence
-    controls.start({
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.8 },
-    });
+  // Fetch categories from API
+  const { data: apiCategories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+    staleTime: 5 * 60 * 1000,
+  });
 
-    // Smooth scroll restoration
+  // Prepend "all" pseudo-category
+  const serviceCategories: ServiceCategory[] = [ALL_CATEGORY, ...apiCategories];
+
+  // Fetch all services (server filters by category when not 'all')
+  const { data: allServices = [], isLoading: servicesLoading } = useQuery({
+    queryKey: ['services'],
+    queryFn: () => getServices(),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    controls.start({ opacity: 1, y: 0, transition: { duration: 0.8 } });
     window.scrollTo(0, 0);
   }, [controls]);
 
-  // Get filtered services based on active category
-  const displayedServices = React.useMemo(() => {
-    return getServicesByCategory(activeCategory);
-  }, [activeCategory]);
-
-  // Filtered services based on search
-  const filteredServices = React.useMemo(() => {
-    if (!searchQuery.trim()) {
-      return displayedServices;
-    }
-
-    const query = searchQuery.toLowerCase();
-    return displayedServices.filter(
-      (service) =>
-        service.name.toLowerCase().includes(query) ||
-        service.description?.toLowerCase().includes(query) ||
-        (typeof service.price === 'number' && service.price.toString().includes(query))
-    );
-  }, [displayedServices, searchQuery]);
-
-  // Get popular services
-  const popularServices = React.useMemo(() => {
-    return getPopularServices(activeCategory);
-  }, [activeCategory]);
-
-  // Active category title
-  const activeCategoryTitle = React.useMemo(() => {
-    return serviceCategories.find((cat) => cat.id === activeCategory)?.title || 'Все услуги';
-  }, [activeCategory]);
-
-  // Flag to determine if we should show popular services
-  const showPopularServices = !searchQuery.trim();
-
-  // Handle client type toggle
-  const handleToggleClientType = (isNew: boolean) => {
-    setIsNewClient(isNew);
-  };
-
-  // Extract category from URL if present
+  // Extract category from URL
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const categoryParam = searchParams.get('category');
-
-    if (categoryParam && serviceCategories.some((cat) => cat.id === categoryParam)) {
+    if (categoryParam && apiCategories.some((cat) => cat.id === categoryParam)) {
       setActiveCategory(categoryParam);
     }
-
-    // Smooth scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [apiCategories]);
 
-  // Handle category switch - SIMPLIFIED without opacity dependency
+  // Filter services by active category client-side
+  const displayedServices = React.useMemo(() => {
+    if (activeCategory === 'all') return allServices;
+    return allServices.filter(
+      (s) => s.category === activeCategory || s.categories?.includes(activeCategory)
+    );
+  }, [allServices, activeCategory]);
+
+  // Filter by search
+  const filteredServices = React.useMemo(() => {
+    if (!searchQuery.trim()) return displayedServices;
+    const query = searchQuery.toLowerCase();
+    return displayedServices.filter(
+      (s) =>
+        s.name.toLowerCase().includes(query) ||
+        s.description?.toLowerCase().includes(query) ||
+        s.price.toString().includes(query)
+    );
+  }, [displayedServices, searchQuery]);
+
+  // Popular services in current category
+  const popularServices = React.useMemo(() => {
+    return displayedServices.filter((s) => s.popular);
+  }, [displayedServices]);
+
+  const activeCategoryTitle = React.useMemo(
+    () => serviceCategories.find((c) => c.id === activeCategory)?.title ?? 'Все услуги',
+    [serviceCategories, activeCategory]
+  );
+
+  const showPopularServices = !searchQuery.trim();
+
+  const handleToggleClientType = (isNew: boolean) => setIsNewClient(isNew);
+
   const handleCategoryChange = (categoryId: string) => {
-    if (activeCategory === categoryId) return; // Don't do anything if clicking the same category
-
-    // Create smooth transition between categories
+    if (activeCategory === categoryId) return;
     setIsContentLoading(true);
-
-    // Short delay to allow fade out animation
     setTimeout(() => {
       setActiveCategory(categoryId);
       setIsContentLoading(false);
-
-      // Update URL
       const url = new URL(window.location.href);
       if (categoryId === 'all') {
         url.searchParams.delete('category');
@@ -153,56 +136,37 @@ const PriceListPage: React.FC = () => {
     }, 300);
   };
 
-  // Meta for this page
+  // Meta
   const meta = React.useMemo(() => {
-    const baseTitle = 'Цены — abclinic.uz';
     const catTitle =
       activeCategory === 'all'
         ? 'Все услуги'
         : (serviceCategories.find((c) => c.id === activeCategory)?.title ?? 'Услуги');
-
     const isSearch = !!searchQuery.trim();
-
     const title = isSearch
-      ? `Поиск: “${searchQuery.trim()}” — Цены — abclinic.uz`
+      ? `Поиск: "${searchQuery.trim()}" — Цены — abclinic.uz`
       : `${catTitle} — цены — abclinic.uz`;
-
     const description = isSearch
-      ? `Результаты поиска по запросу “${searchQuery.trim()}” в прайс-листе abclinic.uz.`
+      ? `Результаты поиска по запросу "${searchQuery.trim()}" в прайс-листе abclinic.uz.`
       : `Актуальные цены: ${catTitle.toLowerCase()} в abclinic.uz. Гигиена GBT, реставрации, эстетика, имплантация, пакеты.`;
-
-    // canonical:
-    //  - категории индексируем с параметром ?category=...
-    //  - поиск НЕ индексируем (noindex) и каноникал ведёт на /services
     const url = isSearch
       ? `${SITE}/services`
       : activeCategory === 'all'
         ? `${SITE}/services`
         : `${SITE}/services?category=${encodeURIComponent(activeCategory)}`;
+    return { title, description, url, image: OG_IMAGE, noindex: isSearch };
+  }, [activeCategory, searchQuery, serviceCategories]);
 
-    return {
-      title,
-      description,
-      url,
-      image: OG_IMAGE,
-      noindex: isSearch, // важное правило: вью поиска не индексируем
-    };
-  }, [activeCategory, searchQuery]);
-
-  // JSON-LD (ItemList) для выдачи: первые N услуг текущего списка
-  const itemListJson = React.useMemo(() => {
-    const items = filteredServices.slice(0, 12).map((s, i) => ({
+  const itemListJson = React.useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: filteredServices.slice(0, 12).map((s, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       url: `${SITE}/services/${s.id}`,
       name: s.name,
-    }));
-    return {
-      '@context': 'https://schema.org',
-      '@type': 'ItemList',
-      itemListElement: items,
-    };
-  }, [filteredServices]);
+    })),
+  }), [filteredServices]);
 
   return (
     <>
@@ -213,14 +177,12 @@ const PriceListPage: React.FC = () => {
         image={meta.image}
         noindex={meta.noindex}
       />
-      {/* JSON-LD */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJson) }}
       />
 
       <div className="min-h-screen bg-[#171b21] text-white">
-        {/* "How it works" modal */}
         <AnimatePresence>
           <HowItWorksModal
             isOpen={isHowItWorksModalOpen}
@@ -228,7 +190,7 @@ const PriceListPage: React.FC = () => {
           />
         </AnimatePresence>
 
-        {/* Section 1: Hero section with "Цены" */}
+        {/* Hero */}
         <section className="relative pt-47 pb-15 bg-gradient-to-b from-[#1A1E24] to-[#171b21]">
           <div className="container mx-auto px-4 md:px-8 lg:px-12">
             <motion.div
@@ -237,7 +199,6 @@ const PriceListPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              {/* Main heading with modern typography */}
               <motion.h1
                 className="text-5xl md:text-7xl font-arista-light"
                 initial={{ opacity: 0, y: 20 }}
@@ -259,7 +220,6 @@ const PriceListPage: React.FC = () => {
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
                     strokeLinecap="round"
@@ -274,19 +234,8 @@ const PriceListPage: React.FC = () => {
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
                     aria-label="Очистить поиск"
                   >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                    >
-                      <path
-                        d="M18 6L6 18M6 6l12 12"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M18 6L6 18M6 6l12 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
                 )}
@@ -295,10 +244,10 @@ const PriceListPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Section 2: Category tabs */}
+        {/* Category tabs */}
         <section className="py-12 border-t border-gray-800">
           <div className="container mx-auto px-4 md:px-8 lg:px-12">
-            {/* Desktop tabs */}
+            {/* Desktop */}
             <div className="hidden md:block">
               <div className="flex justify-center">
                 <div className="inline-flex space-x-2 p-1 bg-[#1E2329]/50 rounded-full">
@@ -321,7 +270,7 @@ const PriceListPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Mobile scrollable tabs */}
+            {/* Mobile */}
             <div className="md:hidden">
               <div className="overflow-x-auto hide-scrollbar py-2">
                 <div className="inline-flex space-x-2 min-w-max px-4">
@@ -345,9 +294,8 @@ const PriceListPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Main content container */}
+        {/* Main content */}
         <div className="container mx-auto px-4 md:px-8 lg:px-12">
-          {/* NEW: Category Information Component */}
           {!searchQuery && (
             <CategoryInformation
               requiresConsultation={
@@ -358,33 +306,31 @@ const PriceListPage: React.FC = () => {
             />
           )}
 
-          {/* Section 3: Popular services cards - only shown when NOT searching */}
+          {/* Popular services */}
           {popularServices.length > 0 && showPopularServices && (
             <section className="py-4 mb-16">
-              <div>
-                <motion.h2
-                  className="text-3xl font-arista-light mb-6 px-4 md:px-0"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: isContentLoading ? 0 : 1, y: isContentLoading ? 10 : 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  Популярные услуги
-                </motion.h2>
-                <div className="-mx-4 md:-mx-8 lg:-mx-12">
-                  <CenteredCarousel popularServices={popularServices} isNewClient={isNewClient} />
-                </div>
+              <motion.h2
+                className="text-3xl font-arista-light mb-6 px-4 md:px-0"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: isContentLoading ? 0 : 1, y: isContentLoading ? 10 : 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                Популярные услуги
+              </motion.h2>
+              <div className="-mx-4 md:-mx-8 lg:-mx-12">
+                <CenteredCarousel popularServices={popularServices} isNewClient={isNewClient} />
               </div>
             </section>
           )}
 
-          {/* Section 4: List of services in selected category */}
+          {/* Services list */}
           <section id="services-list" className="pb-12">
             <motion.div
               className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: isContentLoading ? 0 : 1, y: isContentLoading ? 10 : 0 }}
               transition={{ duration: 0.5 }}
-              key={activeCategory} // Re-animate when category changes
+              key={activeCategory}
             >
               <div>
                 {searchQuery ? (
@@ -404,7 +350,6 @@ const PriceListPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Add "How it works" button for non-search view */}
               {!searchQuery && (
                 <button
                   onClick={() => setIsHowItWorksModalOpen(true)}
@@ -416,123 +361,112 @@ const PriceListPage: React.FC = () => {
               )}
             </motion.div>
 
-            <motion.div
-              className="space-y-4"
-              variants={containerVariants}
-              initial="hidden"
-              animate={isContentLoading ? 'hidden' : 'visible'}
-              key={`${activeCategory}-${searchQuery}`} // Re-animate when key params change
-            >
-              {filteredServices.length > 0 ? (
-                filteredServices.map((service) => {
-                  // Check if service requires consultation
-                  const needsConsultation = requiresConsultation(service);
-
-                  return (
-                    <motion.div
-                      key={service.id}
-                      className="bg-[#1E2329] rounded-lg overflow-hidden hover:bg-[#252A32] transition-colors duration-300"
-                      variants={itemVariants}
-                      whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                    >
-                      <Link to={`/services/${service.id}`} className="block">
-                        <div className="p-6">
-                          <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-                            <div className="mb-4 md:mb-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <h3 className="text-lg font-medium text-white">{service.name}</h3>
-
-                                {/* Show special badges */}
-                                {service.popular && (
-                                  <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">
-                                    Популярно
-                                  </span>
-                                )}
-
-                                {service.isSpecialOffer && (
-                                  <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">
-                                    Спецпредложение
-                                  </span>
-                                )}
-
-                                {service.includesConsultation && (
-                                  <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded flex items-center">
-                                    <Check size={10} className="mr-1" />
-                                    Включает консультацию
-                                  </span>
-                                )}
-
-                                {needsConsultation && !service.includesConsultation && (
-                                  <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded flex items-center">
-                                    <AlertCircle size={10} className="mr-1" />
-                                    Требуется консультация
-                                  </span>
-                                )}
+            {servicesLoading ? (
+              <div className="flex justify-center py-20">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-white" />
+              </div>
+            ) : (
+              <motion.div
+                className="space-y-4"
+                variants={containerVariants}
+                initial="hidden"
+                animate={isContentLoading ? 'hidden' : 'visible'}
+                key={`${activeCategory}-${searchQuery}`}
+              >
+                {filteredServices.length > 0 ? (
+                  filteredServices.map((service) => {
+                    const needsConsultation = requiresConsultation(service);
+                    return (
+                      <motion.div
+                        key={service.id}
+                        className="bg-[#1E2329] rounded-lg overflow-hidden hover:bg-[#252A32] transition-colors duration-300"
+                        variants={itemVariants}
+                        whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                      >
+                        <Link to={`/services/${service.id}`} className="block">
+                          <div className="p-6">
+                            <div className="flex flex-col md:flex-row md:justify-between md:items-center">
+                              <div className="mb-4 md:mb-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h3 className="text-lg font-medium text-white">{service.name}</h3>
+                                  {service.popular && (
+                                    <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">
+                                      Популярно
+                                    </span>
+                                  )}
+                                  {service.isSpecialOffer && (
+                                    <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">
+                                      Спецпредложение
+                                    </span>
+                                  )}
+                                  {service.includesConsultation && (
+                                    <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded flex items-center">
+                                      <Check size={10} className="mr-1" />
+                                      Включает консультацию
+                                    </span>
+                                  )}
+                                  {needsConsultation && !service.includesConsultation && (
+                                    <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded flex items-center">
+                                      <AlertCircle size={10} className="mr-1" />
+                                      Требуется консультация
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-gray-400 mt-1 text-sm md:pr-10 line-clamp-1">
+                                  {service.description}
+                                </p>
                               </div>
 
-                              <p className="text-gray-400 mt-1 text-sm md:pr-10 line-clamp-1">
-                                {service.description}
-                              </p>
-                            </div>
-
-                            <div className="flex items-center justify-between md:justify-end w-full md:w-auto">
-                              <div className="md:mr-12 flex items-center">
-                                <span className="text-sm text-gray-400 mr-2">
-                                  {service.duration}
-                                </span>
-                              </div>
-
-                              <div className="flex items-center">
-                                <span className="font-medium text-white text-lg mr-4">
-                                  {typeof service.price === 'number'
-                                    ? `${service.price.toLocaleString('ru-RU')} сум`
-                                    : 'Цена по запросу'}
-                                </span>
-                                <svg
-                                  className="w-5 h-5 text-gray-400"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 5l7 7-7 7"
-                                  />
-                                </svg>
+                              <div className="flex items-center justify-between md:justify-end w-full md:w-auto">
+                                <div className="md:mr-12 flex items-center">
+                                  <span className="text-sm text-gray-400 mr-2">{service.duration}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="font-medium text-white text-lg mr-4">
+                                    {typeof service.price === 'number'
+                                      ? `${service.price.toLocaleString('ru-RU')} сум`
+                                      : 'Цена по запросу'}
+                                  </span>
+                                  <svg
+                                    className="w-5 h-5 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </Link>
-                    </motion.div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-10">
-                  {searchQuery ? (
-                    <div>
-                      <p className="text-gray-400 mb-4">
-                        По запросу "{searchQuery}" ничего не найдено
-                      </p>
-                      <button
-                        onClick={() => setSearchQuery('')}
-                        className="text-blue-400 hover:text-blue-300 transition-colors"
-                      >
-                        Сбросить поиск
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-gray-400">Нет услуг в данной категории</p>
-                  )}
-                </div>
-              )}
-            </motion.div>
+                        </Link>
+                      </motion.div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-10">
+                    {searchQuery ? (
+                      <div>
+                        <p className="text-gray-400 mb-4">
+                          По запросу "{searchQuery}" ничего не найдено
+                        </p>
+                        <button
+                          onClick={() => setSearchQuery('')}
+                          className="text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          Сбросить поиск
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-gray-400">Нет услуг в данной категории</p>
+                    )}
+                  </div>
+                )}
+              </motion.div>
+            )}
           </section>
 
-          {/* CTA section */}
+          {/* CTA */}
           <section className="py-20 bg-[#1a1e24]">
             <div className="container mx-auto px-4 md:px-8 lg:px-12">
               <motion.div
@@ -542,7 +476,6 @@ const PriceListPage: React.FC = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
               >
-                {/* Decorative elements */}
                 <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
                 <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full bg-blue-500/10 filter blur-3xl"></div>
                 <div className="absolute -bottom-32 -left-32 w-64 h-64 rounded-full bg-purple-500/10 filter blur-3xl"></div>
@@ -566,7 +499,6 @@ const PriceListPage: React.FC = () => {
                       <Calendar size={18} className="mr-2" />
                       Записаться на консультацию
                     </Link>
-
                     <Link
                       to="/contact"
                       className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium px-8 py-4 rounded-lg flex items-center justify-center transition-colors duration-300"

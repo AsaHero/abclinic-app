@@ -1,0 +1,37 @@
+# Task: SQLite CMS + Admin Panel
+
+## Phase 1 — Backend (Express + SQLite)
+- [ ] Install server dependencies
+- [ ] Create `.env`
+- [ ] Create `server/db.js` — SQLite schema + init
+- [ ] Create `server/seed.js` — import all existing data
+- [ ] Create `server/middleware/auth.js` — JWT verification
+- [ ] Create `server/routes/auth.js` — login endpoint
+- [ ] Create `server/routes/services.js` — CRUD
+- [ ] Create `server/routes/categories.js` — CRUD
+- [ ] Create `server/routes/upload.js` — multer image upload
+- [ ] Create `server/index.js` — main server entry
+
+## Phase 2 — Frontend API layer
+- [ ] Update `vite.config.ts` — add proxy
+- [ ] Update `package.json` — add scripts
+- [ ] Create `src/api/services.ts` — all API helpers
+- [ ] Update `src/types/serviceData.ts` — types only, remove hardcoded data
+- [ ] Update `src/pages/PriceListPage.tsx` — use useQuery
+- [ ] Update `src/pages/ServiceDetailPage.tsx` — use useQuery
+
+## Phase 3 — Admin Panel
+- [ ] Create `src/pages/admin/AdminLoginPage.tsx`
+- [ ] Create `src/pages/admin/AdminLayout.tsx`
+- [ ] Create `src/pages/admin/AdminDashboard.tsx`
+- [ ] Create `src/pages/admin/ServicesListPage.tsx`
+- [ ] Create `src/pages/admin/ServiceFormPage.tsx`
+- [ ] Create `src/pages/admin/CategoriesPage.tsx`
+- [ ] Create `src/components/admin/ImageUploader.tsx`
+- [ ] Create `src/components/admin/MarkdownEditor.tsx`
+- [ ] Update `src/App.tsx` — add /admin route
+
+## Phase 4 — Seed & Verify
+- [ ] Run `npm run seed`
+- [ ] Test frontend loads from API
+- [ ] Test admin CRUD flow

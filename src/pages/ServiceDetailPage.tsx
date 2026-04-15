@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkAlert from 'remark-github-blockquote-alert';
@@ -14,24 +15,16 @@ import {
   CheckCircle2,
   Calendar,
   Phone,
-  Star,
   ChevronRight,
   AlertCircle,
   Info,
   Check,
 } from 'lucide-react';
 
-// Import service data and interfaces
-import {
-  allServices,
-  serviceCategories,
-  getRelatedServices,
-  requiresConsultation,
-} from '../types/serviceData';
+import { getService, getServices, getCategories } from '../api/services';
+import { requiresConsultation } from '../types/serviceData';
 import HowItWorksModal from '../components/services/HowItWorksModal';
 import ContactWithUs from '@/components/common/ContactWithUs';
-
-// Import new media components
 import BeforeAfterGallery from '../components/services/BeforeAfterGallery';
 import ServiceVideo from '../components/services/ServiceVideo';
 import ImageGallery from '../components/services/ImageGallery';
@@ -41,53 +34,65 @@ import SeoLite from '@/components/seo/SeoLite';
 const ServiceDetailPage: React.FC = () => {
   const { serviceId } = useParams<{ serviceId: string }>();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
   const [isHowItWorksModalOpen, setIsHowItWorksModalOpen] = useState(false);
   const desc = useRef<HTMLDivElement>(null);
   const sidebar = useRef<HTMLDivElement>(null);
-  const [syncScroll, setSync] = useState(false);
 
-  // Find the service from our data
-  const service = allServices.find((s) => s.id === serviceId);
+  // Fetch the service
+  const {
+    data: service,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['service', serviceId],
+    queryFn: () => getService(serviceId!),
+    enabled: !!serviceId,
+    retry: false,
+  });
 
-  // Find the service category
-  const category = service ? serviceCategories.find((cat) => cat.id === service.category) : null;
+  // Fetch categories (for breadcrumb title)
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  // Get related services in the same category
-  const relatedServices = service ? getRelatedServices(service.id, 3) : [];
+  // Fetch related services (same category)
+  const { data: categoryServices = [] } = useQuery({
+    queryKey: ['services', service?.category],
+    queryFn: () => getServices(service!.category),
+    enabled: !!service?.category,
+    staleTime: 2 * 60 * 1000,
+  });
 
-  // Check if service requires consultation
+  const relatedServices = React.useMemo(
+    () => categoryServices.filter((s) => s.id !== serviceId).slice(0, 3),
+    [categoryServices, serviceId]
+  );
+
+  const category = service ? categories.find((c) => c.id === service.category) : null;
   const needsConsultation = service ? requiresConsultation(service) : false;
 
+  // Redirect if not found
   useEffect(() => {
-    // If service not found, redirect to 404
-    if (!service && !isLoading) {
-      navigate('/404');
-      return;
-    }
+    if (isError) navigate('/404');
+  }, [isError, navigate]);
 
-    // Scroll to top
+  // Scroll to top on service change
+  useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [serviceId]);
 
-    // Simulate loading for smoother transitions
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [service, isLoading, navigate]);
-
+  // Sync sidebar scroll to description scroll
   useEffect(() => {
-    const offsetDesc = (e) => {
+    const offsetDesc = () => {
       if (desc.current && sidebar.current) {
         const descHiddenPixels = getHiddenPixels(desc.current);
         const sidebarHiddenPixels = getUnscrolledPixels(sidebar.current);
-
         const descTop = descHiddenPixels.top;
         const descBtm = descHiddenPixels.bottom;
         const sideTop = sidebarHiddenPixels.top;
         const sideBtm = sidebarHiddenPixels.bottom;
-
         if (descTop < sideTop) {
           sidebar.current.scrollBy({ top: descTop - sideTop });
         } else if (descBtm < sideBtm) {
@@ -95,9 +100,7 @@ const ServiceDetailPage: React.FC = () => {
         }
       }
     };
-    // Simulate loading for smoother transitions
     window.addEventListener('scroll', offsetDesc);
-
     return () => window.removeEventListener('scroll', offsetDesc);
   }, []);
 
@@ -109,25 +112,22 @@ const ServiceDetailPage: React.FC = () => {
     );
   }
 
-  if (!service) {
-    return null; // Will redirect in useEffect
-  }
+  if (!service) return null;
 
   return (
     <>
       <SeoLite
-        title={service ? `${service.name} — abclinic.uz` : 'Услуга — abclinic.uz'}
-        description={service?.description ?? 'Подробности услуги в abclinic.uz'}
+        title={`${service.name} — abclinic.uz`}
+        description={service.description ?? 'Подробности услуги в abclinic.uz'}
         url={`https://abclinic.uz/services/${serviceId ?? ''}`}
         image={
-          service?.heroImage
+          service.heroImage
             ? `https://abclinic.uz${service.heroImage}`
             : 'https://abclinic.uz/images/tour.jpg'
         }
       />
 
       <div className="min-h-screen pt-33 bg-[#171b21] text-white">
-        {/* "How it works" modal */}
         <AnimatePresence>
           <HowItWorksModal
             isOpen={isHowItWorksModalOpen}
@@ -135,21 +135,14 @@ const ServiceDetailPage: React.FC = () => {
           />
         </AnimatePresence>
 
-        {/* Back button and breadcrumbs */}
+        {/* Breadcrumbs */}
         <div className="container mx-auto px-4 md:px-8 lg:px-12 mb-8">
           <div className="flex items-center text-sm text-gray-400">
-            <Link to="/" className="hover:text-white transition-colors">
-              Главная
-            </Link>
+            <Link to="/" className="hover:text-white transition-colors">Главная</Link>
             <span className="mx-2">/</span>
-            <Link to="/services" className="hover:text-white transition-colors">
-              Услуги
-            </Link>
+            <Link to="/services" className="hover:text-white transition-colors">Услуги</Link>
             <span className="mx-2">/</span>
-            <Link
-              to={`/services?category=${service.category}`}
-              className="hover:text-white transition-colors"
-            >
+            <Link to={`/services?category=${service.category}`} className="hover:text-white transition-colors">
               {category?.title}
             </Link>
             <span className="mx-2">/</span>
@@ -157,7 +150,7 @@ const ServiceDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Enhanced Hero Section with Premium Image Background */}
+        {/* Hero */}
         <motion.section
           className={`py-12 relative overflow-hidden ${
             service.heroImage
@@ -168,7 +161,6 @@ const ServiceDetailPage: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
         >
-          {/* Background Image with Overlay */}
           {service.heroImage && (
             <>
               <div
@@ -178,10 +170,8 @@ const ServiceDetailPage: React.FC = () => {
                   backgroundPosition: service.backgroundPosition || 'center center',
                 }}
               />
-              {/* Premium overlay gradients */}
               <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-              {/* Subtle pattern overlay for texture */}
               <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:20px_20px]" />
             </>
           )}
@@ -191,15 +181,11 @@ const ServiceDetailPage: React.FC = () => {
               to="/services"
               className="inline-flex items-center text-gray-400 hover:text-white transition-all duration-300 mb-12 group"
             >
-              <ArrowLeft
-                size={16}
-                className="mr-2 transition-transform group-hover:-translate-x-1"
-              />
+              <ArrowLeft size={16} className="mr-2 transition-transform group-hover:-translate-x-1" />
               <span className="text-sm tracking-wider">Вернуться к услугам</span>
             </Link>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-              {/* Service info - full width when using background image */}
               <div className={service.heroImage ? 'lg:col-span-12 max-w-4xl' : 'lg:col-span-8'}>
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
@@ -216,7 +202,6 @@ const ServiceDetailPage: React.FC = () => {
                     {service.name}
                   </h1>
 
-                  {/* Consultation requirement badge with enhanced styling for image backgrounds */}
                   {service.category !== 'consultation' && (
                     <div className="flex items-center space-x-3 mb-6">
                       {service.includesConsultation ? (
@@ -267,36 +252,21 @@ const ServiceDetailPage: React.FC = () => {
                   )}
 
                   <div className="flex items-center text-xl mb-8">
-                    <Clock
-                      size={20}
-                      className={`mr-3 ${service.heroImage ? 'text-blue-300' : 'text-blue-400'}`}
-                    />
+                    <Clock size={20} className={`mr-3 ${service.heroImage ? 'text-blue-300' : 'text-blue-400'}`} />
                     <span className={service.heroImage ? 'text-gray-100' : 'text-gray-200'}>
                       {service.duration}
                     </span>
-
-                    <div
-                      className={`h-4 w-px mx-6 ${service.heroImage ? 'bg-gray-400' : 'bg-gray-600'}`}
-                    ></div>
-
-                    <span
-                      className={`text-2xl font-light ${service.heroImage ? 'text-white drop-shadow-lg' : 'text-white'}`}
-                    >
+                    <div className={`h-4 w-px mx-6 ${service.heroImage ? 'bg-gray-400' : 'bg-gray-600'}`}></div>
+                    <span className={`text-2xl font-light ${service.heroImage ? 'text-white drop-shadow-lg' : 'text-white'}`}>
                       {service.price.toLocaleString('ru-RU')} сум
                     </span>
                   </div>
 
-                  {/* Enhanced description with better contrast for image backgrounds */}
-                  <p
-                    className={`text-xl leading-relaxed mb-10 max-w-3xl font-light ${
-                      service.heroImage ? 'text-gray-100 drop-shadow-lg' : 'text-gray-300'
-                    }`}
-                  >
+                  <p className={`text-xl leading-relaxed mb-10 max-w-3xl font-light ${service.heroImage ? 'text-gray-100 drop-shadow-lg' : 'text-gray-300'}`}>
                     {service.description}
                   </p>
 
                   <div className="flex flex-wrap gap-4 mb-12">
-                    {/* Enhanced CTAs with better styling for image backgrounds */}
                     {service.includesConsultation || service.category === 'consultation' ? (
                       <Link
                         to="/contact"
@@ -306,10 +276,7 @@ const ServiceDetailPage: React.FC = () => {
                             : 'bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white shadow-lg shadow-blue-500/20'
                         }`}
                       >
-                        <Calendar
-                          size={18}
-                          className="mr-3 group-hover:scale-110 transition-transform"
-                        />
+                        <Calendar size={18} className="mr-3 group-hover:scale-110 transition-transform" />
                         Записаться на прием
                       </Link>
                     ) : needsConsultation ? (
@@ -322,10 +289,7 @@ const ServiceDetailPage: React.FC = () => {
                               : 'bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white shadow-lg shadow-blue-500/20'
                           }`}
                         >
-                          <Calendar
-                            size={18}
-                            className="mr-3 group-hover:scale-110 transition-transform"
-                          />
+                          <Calendar size={18} className="mr-3 group-hover:scale-110 transition-transform" />
                           Записаться на консультацию
                         </Link>
                         <button
@@ -336,10 +300,7 @@ const ServiceDetailPage: React.FC = () => {
                               : 'bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 text-white'
                           }`}
                         >
-                          <Info
-                            size={18}
-                            className="mr-3 group-hover:scale-110 transition-transform"
-                          />
+                          <Info size={18} className="mr-3 group-hover:scale-110 transition-transform" />
                           Как это работает
                         </button>
                       </>
@@ -352,10 +313,7 @@ const ServiceDetailPage: React.FC = () => {
                             : 'bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white shadow-lg shadow-blue-500/20'
                         }`}
                       >
-                        <Calendar
-                          size={18}
-                          className="mr-3 group-hover:scale-110 transition-transform"
-                        />
+                        <Calendar size={18} className="mr-3 group-hover:scale-110 transition-transform" />
                         Записаться на прием
                       </Link>
                     )}
@@ -368,10 +326,7 @@ const ServiceDetailPage: React.FC = () => {
                           : 'bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 text-white'
                       }`}
                     >
-                      <Phone
-                        size={18}
-                        className="mr-3 group-hover:scale-110 transition-transform"
-                      />
+                      <Phone size={18} className="mr-3 group-hover:scale-110 transition-transform" />
                       Получить консультацию
                     </Link>
                   </div>
@@ -381,13 +336,13 @@ const ServiceDetailPage: React.FC = () => {
           </div>
         </motion.section>
 
-        {/* Details section with luxury styling */}
+        {/* Details */}
         <section className="py-24 bg-gradient-to-b from-[#171b21] to-[#1a1e24]">
           <div className="container mx-auto px-4 md:px-8 lg:px-12">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-              {/* Main content - 2 columns */}
+              {/* Main content */}
               <div className="lg:col-span-2 space-y-16" ref={desc}>
-                {/* Description Section */}
+                {/* Description */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -401,53 +356,30 @@ const ServiceDetailPage: React.FC = () => {
                   </div>
 
                   {service.detailedDescription ? (
-                    <div
-                      className="prose prose-lg prose-invert max-w-none
-    prose-headings:text-white prose-headings:font-medium prose-headings:mb-4
-    prose-p:text-gray-300 prose-p:text-lg prose-p:leading-relaxed prose-p:mb-4
-    prose-strong:text-white prose-strong:font-semibold
-    prose-em:text-blue-200 prose-em:italic
-    prose-blockquote:text-blue-300 prose-blockquote:border-l-blue-500 prose-blockquote:border-l-4 prose-blockquote:pl-6 prose-blockquote:italic
-    prose-ul:text-gray-300 prose-ul:mb-4
-    prose-ol:text-gray-300 prose-ol:mb-4
-    prose-li:text-gray-300 prose-li:mb-2
-    prose-code:text-blue-300 prose-code:bg-blue-900/20 prose-code:px-2 prose-code:py-1 prose-code:rounded
-    prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700
-    prose-a:text-blue-400 prose-a:no-underline hover:prose-a:text-blue-300 hover:prose-a:underline
-    prose-hr:border-gray-600
-    prose-table:text-gray-300
-    prose-thead:text-white
-    prose-th:border-gray-600
-    prose-td:border-gray-700"
+                    <div className="prose prose-lg prose-invert max-w-none
+                      prose-headings:text-white prose-headings:font-medium prose-headings:mb-4
+                      prose-p:text-gray-300 prose-p:text-lg prose-p:leading-relaxed prose-p:mb-4
+                      prose-strong:text-white prose-strong:font-semibold
+                      prose-em:text-blue-200 prose-em:italic
+                      prose-blockquote:text-blue-300 prose-blockquote:border-l-blue-500 prose-blockquote:border-l-4 prose-blockquote:pl-6 prose-blockquote:italic
+                      prose-ul:text-gray-300 prose-ul:mb-4
+                      prose-ol:text-gray-300 prose-ol:mb-4
+                      prose-li:text-gray-300 prose-li:mb-2
+                      prose-code:text-blue-300 prose-code:bg-blue-900/20 prose-code:px-2 prose-code:py-1 prose-code:rounded
+                      prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700
+                      prose-a:text-blue-400 prose-a:no-underline hover:prose-a:text-blue-300 hover:prose-a:underline
+                      prose-hr:border-gray-600 prose-table:text-gray-300 prose-thead:text-white
+                      prose-th:border-gray-600 prose-td:border-gray-700"
                     >
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkAlert, remarkBreaks]}
                         components={{
-                          // Custom components for better styling
-                          h1: ({ children }) => (
-                            <h1 className="text-3xl font-bold text-white mb-6">{children}</h1>
-                          ),
-                          h2: ({ children }) => (
-                            <h2 className="text-2xl font-semibold text-white mb-4 mt-8">
-                              {children}
-                            </h2>
-                          ),
-                          h3: ({ children }) => (
-                            <h3 className="text-xl font-medium text-white mb-3 mt-6">{children}</h3>
-                          ),
-                          p: ({ children }) => (
-                            <p className="text-lg text-gray-300 mb-4 leading-relaxed">{children}</p>
-                          ),
-                          ul: ({ children }) => (
-                            <ul className="list-disc list-inside text-gray-300 mb-4 space-y-2">
-                              {children}
-                            </ul>
-                          ),
-                          ol: ({ children }) => (
-                            <ol className="list-decimal list-inside text-gray-300 mb-4 space-y-2">
-                              {children}
-                            </ol>
-                          ),
+                          h1: ({ children }) => <h1 className="text-3xl font-bold text-white mb-6">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-2xl font-semibold text-white mb-4 mt-8">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-xl font-medium text-white mb-3 mt-6">{children}</h3>,
+                          p: ({ children }) => <p className="text-lg text-gray-300 mb-4 leading-relaxed">{children}</p>,
+                          ul: ({ children }) => <ul className="list-disc list-inside text-gray-300 mb-4 space-y-2">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal list-inside text-gray-300 mb-4 space-y-2">{children}</ol>,
                           li: ({ children }) => <li className="text-gray-300">{children}</li>,
                           blockquote: ({ children }) => (
                             <blockquote className="border-l-4 border-blue-500 pl-6 my-6 italic text-blue-200 bg-blue-900/10 py-4 rounded-r">
@@ -455,14 +387,10 @@ const ServiceDetailPage: React.FC = () => {
                             </blockquote>
                           ),
                           code: ({ children }) => (
-                            <code className="bg-blue-900/20 text-blue-300 px-2 py-1 rounded text-sm">
-                              {children}
-                            </code>
+                            <code className="bg-blue-900/20 text-blue-300 px-2 py-1 rounded text-sm">{children}</code>
                           ),
                           pre: ({ children }) => (
-                            <pre className="bg-gray-900 border border-gray-700 rounded-lg p-4 overflow-x-auto my-6">
-                              {children}
-                            </pre>
+                            <pre className="bg-gray-900 border border-gray-700 rounded-lg p-4 overflow-x-auto my-6">{children}</pre>
                           ),
                         }}
                       >
@@ -471,9 +399,7 @@ const ServiceDetailPage: React.FC = () => {
                     </div>
                   ) : (
                     <div className="prose prose-lg prose-invert max-w-none">
-                      <p className="text-xl leading-relaxed text-gray-300 font-light">
-                        {service.description}
-                      </p>
+                      <p className="text-xl leading-relaxed text-gray-300 font-light">{service.description}</p>
                       <p className="text-xl leading-relaxed text-gray-300 font-light">
                         Мы используем современные технологии и материалы высочайшего качества, чтобы
                         обеспечить максимальный комфорт и долговечность результата.
@@ -487,7 +413,7 @@ const ServiceDetailPage: React.FC = () => {
                   )}
                 </motion.div>
 
-                {/* FAQ Section */}
+                {/* FAQ */}
                 {service.faqs && service.faqs.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -500,13 +426,9 @@ const ServiceDetailPage: React.FC = () => {
                       <h2 className="text-3xl font-arista-light mx-6">Часто задаваемые вопросы</h2>
                       <div className="h-px flex-grow bg-gradient-to-l from-blue-500/50 to-transparent"></div>
                     </div>
-
                     <div className="space-y-8">
                       {service.faqs.map((faq, index) => (
-                        <div
-                          key={index}
-                          className="bg-white/5 backdrop-blur-sm rounded-xl p-6 hover:bg-white/8 transition-colors"
-                        >
+                        <div key={index} className="bg-white/5 backdrop-blur-sm rounded-xl p-6 hover:bg-white/8 transition-colors">
                           <h3 className="text-xl font-medium mb-3 text-white">{faq.question}</h3>
                           <p className="text-lg text-gray-300 font-light">{faq.answer}</p>
                         </div>
@@ -522,36 +444,23 @@ const ServiceDetailPage: React.FC = () => {
                             Для этой услуги предварительная консультация необходима, чтобы:
                           </p>
                           <ul className="space-y-2">
-                            <li className="flex items-start">
-                              <CheckCircle2 className="w-5 h-5 text-orange-400 mt-1 mr-2 flex-shrink-0" />
-                              <span>
-                                Оценить ваше текущее состояние и сделать необходимые снимки
-                              </span>
-                            </li>
-                            <li className="flex items-start">
-                              <CheckCircle2 className="w-5 h-5 text-orange-400 mt-1 mr-2 flex-shrink-0" />
-                              <span>Разработать персонализированный план лечения</span>
-                            </li>
-                            <li className="flex items-start">
-                              <CheckCircle2 className="w-5 h-5 text-orange-400 mt-1 mr-2 flex-shrink-0" />
-                              <span>Обсудить ожидаемые результаты и возможные альтернативы</span>
-                            </li>
-                            <li className="flex items-start">
-                              <CheckCircle2 className="w-5 h-5 text-orange-400 mt-1 mr-2 flex-shrink-0" />
-                              <span>Рассчитать точную стоимость и длительность лечения</span>
-                            </li>
+                            {[
+                              'Оценить ваше текущее состояние и сделать необходимые снимки',
+                              'Разработать персонализированный план лечения',
+                              'Обсудить ожидаемые результаты и возможные альтернативы',
+                              'Рассчитать точную стоимость и длительность лечения',
+                            ].map((item) => (
+                              <li key={item} className="flex items-start">
+                                <CheckCircle2 className="w-5 h-5 text-orange-400 mt-1 mr-2 flex-shrink-0" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
                           </ul>
                           <div className="mt-4 flex space-x-4">
-                            <Link
-                              to="/services/consult-general"
-                              className="text-orange-400 hover:text-orange-300 transition-colors"
-                            >
+                            <Link to="/services/consult-general" className="text-orange-400 hover:text-orange-300 transition-colors">
                               Подробнее о консультации
                             </Link>
-                            <button
-                              onClick={() => setIsHowItWorksModalOpen(true)}
-                              className="text-orange-400 hover:text-orange-300 transition-colors"
-                            >
+                            <button onClick={() => setIsHowItWorksModalOpen(true)} className="text-orange-400 hover:text-orange-300 transition-colors">
                               Как проходит лечение
                             </button>
                           </div>
@@ -562,68 +471,56 @@ const ServiceDetailPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Sticky Scrollable Sidebar - 1 column with enhanced visual elements and media */}
+              {/* Sidebar */}
               <motion.div className="lg:sticky lg:top-16 lg:self-start">
                 <div
                   className="lg:max-h-[calc(100vh-6rem)] lg:overflow-hidden space-y-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
                   ref={sidebar}
                 >
-                  {/* Related Services - only show if there are related services */}
                   {relatedServices.length > 0 && (
                     <div className="bg-gradient-to-br from-[#1E2329] to-[#252A32] rounded-xl overflow-hidden shadow-xl shadow-black/20">
                       <div className="h-1 bg-gradient-to-r from-blue-500 to-teal-400"></div>
                       <div className="p-5">
                         <h3 className="text-lg font-medium mb-4 text-white">Похожие услуги</h3>
                         <div className="space-y-3">
-                          {relatedServices.map((relatedService) => (
+                          {relatedServices.map((rel) => (
                             <Link
-                              key={relatedService.id}
-                              to={`/services/${relatedService.id}`}
+                              key={rel.id}
+                              to={`/services/${rel.id}`}
                               className="block p-3 bg-gradient-to-br from-white/5 to-white/8 rounded-lg hover:from-white/8 hover:to-white/10 transition-all duration-300 border border-white/5 group"
                             >
                               <div className="flex justify-between items-start">
                                 <div className="flex-1 min-w-0">
                                   <h4 className="font-medium text-white text-sm mb-1 group-hover:text-blue-400 transition-colors line-clamp-2">
-                                    {relatedService.name}
+                                    {rel.name}
                                   </h4>
                                   <div className="flex items-center text-xs text-gray-400">
                                     <Clock size={12} className="mr-1" />
-                                    <span>{relatedService.duration}</span>
+                                    <span>{rel.duration}</span>
                                   </div>
                                 </div>
                                 <div className="px-2 py-1 rounded text-xs bg-white/10 text-white ml-2 flex-shrink-0">
-                                  {relatedService.price.toLocaleString('ru-RU')} сум
+                                  {rel.price.toLocaleString('ru-RU')} сум
                                 </div>
                               </div>
                             </Link>
                           ))}
-
                           <Link
                             to={`/services?category=${service.category}`}
                             className="flex items-center justify-center py-2 text-blue-400 hover:text-blue-300 transition-colors group text-sm"
                           >
                             <span>Все услуги категории</span>
-                            <ChevronRight
-                              size={14}
-                              className="ml-1 transition-transform group-hover:translate-x-1"
-                            />
+                            <ChevronRight size={14} className="ml-1 transition-transform group-hover:translate-x-1" />
                           </Link>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* Media Sections - conditionally rendered */}
-
-                  {/* Before/After Gallery */}
                   {service.beforeAfterImages && service.beforeAfterImages.length > 0 && (
                     <BeforeAfterGallery images={service.beforeAfterImages} />
                   )}
-
-                  {/* Service Video */}
                   {service.serviceVideo && <ServiceVideo videoUrl={service.serviceVideo} />}
-
-                  {/* Image Gallery */}
                   {service.galleryImages && service.galleryImages.length > 0 && (
                     <ImageGallery images={service.galleryImages} />
                   )}
@@ -633,7 +530,7 @@ const ServiceDetailPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Call to Action */}
+        {/* CTA */}
         <section className="py-24 relative">
           <ContactWithUs
             title={
@@ -643,8 +540,8 @@ const ServiceDetailPage: React.FC = () => {
             }
             description={
               needsConsultation
-                ? `Запишитесь на консультацию, чтобы наши специалисты могли оценить вашу ситуацию, составить план лечения и рассчитать точную стоимость услуги. Это необходимый первый шаг для достижения наилучшего результата.`
-                : `Наши специалисты ответят на все ваши вопросы и подберут оптимальное время для визита. Мы гарантируем индивидуальный подход и высочайшее качество обслуживания.`
+                ? 'Запишитесь на консультацию, чтобы наши специалисты могли оценить вашу ситуацию, составить план лечения и рассчитать точную стоимость услуги. Это необходимый первый шаг для достижения наилучшего результата.'
+                : 'Наши специалисты ответят на все ваши вопросы и подберут оптимальное время для визита. Мы гарантируем индивидуальный подход и высочайшее качество обслуживания.'
             }
             needsConsultation={needsConsultation}
             setIsHowItWorksModalOpen={setIsHowItWorksModalOpen}

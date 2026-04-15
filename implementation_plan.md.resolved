@@ -1,0 +1,254 @@
+# SQLite-Backed Services CMS with Admin Panel
+
+Replace hardcoded `serviceData.ts` with a SQLite database, a small Express API server, and a full admin panel at `/admin` so your client can manage services without touching code.
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Browser                                                      │
+│  ┌─────────────────┐     ┌─────────────────────────────┐    │
+│  │  Existing App   │     │   /admin  (React route)      │    │
+│  │  (Vite :5173)   │     │   Password-protected panel   │    │
+│  └────────┬────────┘     └──────────────┬───────────────┘    │
+│           │ fetch API                    │ fetch API          │
+└───────────┼──────────────────────────────┼────────────────────┘
+            ▼                              ▼
+┌────────────────────────────────────────────────────────┐
+│  Express Server  :3001   (server/)                      │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │  Routes                                           │  │
+│  │  GET/POST/PUT/DELETE  /api/services               │  │
+│  │  GET/POST/PUT/DELETE  /api/categories             │  │
+│  │  POST                 /api/upload                 │  │
+│  │  POST                 /api/auth/login             │  │
+│  └───────────────────────┬──────────────────────────┘  │
+│                          │                              │
+│  ┌───────────────────┐   │   ┌──────────────────────┐  │
+│  │  SQLite           │◄──┘   │  /public/uploads/    │  │
+│  │  services.db      │       │  (images, etc.)      │  │
+│  └───────────────────┘       └──────────────────────┘  │
+└────────────────────────────────────────────────────────┘
+```
+
+## User Review Required
+
+> [!IMPORTANT]
+> The Express server runs on port **3001** alongside the Vite dev server on **5173**. In development you run both with `npm run dev`. In production, you would deploy the Express server separately (e.g., on a VPS or Railway.app) and point the frontend at its URL.
+
+> [!IMPORTANT]
+> **Admin password** — We'll set a simple password stored in an env variable (`ADMIN_PASSWORD` in `.env`). This is protected by a session token in localStorage. If the client needs multi-user access later, Supabase Auth can be swapped in.
+
+> [!WARNING]
+> **Existing `serviceData.ts` data** — The entire hardcoded dataset (services + categories) will be **migrated into SQLite** as a seed script. The TypeScript file will be replaced with API calls. This is a one-way migration for services data.
+
+---
+
+## Proposed Changes
+
+### 1. Backend — Express + SQLite server
+
+#### [NEW] `server/index.js`
+Entry point. Sets up Express, CORS, multer, and mounts all routes.
+
+#### [NEW] `server/db.js`
+Initializes better-sqlite3, creates tables, runs seed if empty.
+
+**Database Schema:**
+```sql
+-- categories table
+CREATE TABLE IF NOT EXISTS categories (
+  id        TEXT PRIMARY KEY,
+  title     TEXT NOT NULL,
+  description TEXT,
+  requiresConsultation INTEGER DEFAULT 0,
+  sortOrder INTEGER DEFAULT 0
+);
+
+-- services table
+CREATE TABLE IF NOT EXISTS services (
+  id                    TEXT PRIMARY KEY,
+  name                  TEXT NOT NULL,
+  price                 INTEGER NOT NULL,
+  category              TEXT NOT NULL,
+  categories            TEXT,          -- JSON array, e.g. '["consultation","hygiene"]'
+  description           TEXT,
+  detailedDescription   TEXT,
+  duration              TEXT,
+  heroImage             TEXT,
+  backgroundPosition    TEXT,
+  popular               INTEGER DEFAULT 0,
+  isSpecialOffer        INTEGER DEFAULT 0,
+  includesConsultation  INTEGER DEFAULT 0,
+  requiresConsultation  INTEGER DEFAULT 0,
+  benefits              TEXT,          -- JSON array
+  process               TEXT,          -- JSON array
+  suitableFor           TEXT,          -- JSON array
+  faqs                  TEXT,          -- JSON array
+  beforeAfterImages     TEXT,          -- JSON array
+  serviceVideo          TEXT,
+  galleryImages         TEXT,          -- JSON array
+  sortOrder             INTEGER DEFAULT 0,
+  createdAt             TEXT DEFAULT (datetime('now')),
+  updatedAt             TEXT DEFAULT (datetime('now'))
+);
+```
+
+#### [NEW] `server/routes/services.js`
+REST CRUD for services. Returns proper JSON, handles JSON column parsing.
+
+#### [NEW] `server/routes/categories.js`
+REST CRUD for categories.
+
+#### [NEW] `server/routes/upload.js`
+`multer` endpoint: `POST /api/upload` → saves to `public/uploads/` → returns the public URL.
+
+#### [NEW] `server/routes/auth.js`
+Simple password check. Returns a signed JWT stored in localStorage on the frontend.
+
+#### [NEW] `server/seed.js`
+One-time script that imports all data from `serviceData.ts`-equivalent JSON and inserts into SQLite.
+
+#### [NEW] `server/middleware/auth.js`
+JWT verification middleware that protects all write routes.
+
+---
+
+### 2. Frontend — API layer replacing static imports
+
+#### [MODIFY] `src/types/serviceData.ts`
+Keep interfaces (`PriceItem`, `ServiceCategory`) **but remove all hardcoded data constants** and replace helper functions with API-based versions. The file becomes types-only.
+
+#### [NEW] `src/api/services.ts`
+All API calls:
+```ts
+getServices(categoryId?: string): Promise<PriceItem[]>
+getService(id: string): Promise<PriceItem>
+getCategories(): Promise<ServiceCategory[]>
+createService(data): Promise<PriceItem>
+updateService(id, data): Promise<PriceItem>
+deleteService(id): Promise<void>
+createCategory(data): Promise<ServiceCategory>
+updateCategory(id, data): Promise<ServiceCategory>
+deleteCategory(id): Promise<void>
+uploadFile(file: File): Promise<{ url: string }>
+login(password: string): Promise<{ token: string }>
+```
+
+#### [MODIFY] `src/pages/PriceListPage.tsx`
+Replace static imports with `useQuery` (TanStack Query, already installed) calls to the API.
+
+#### [MODIFY] `src/pages/ServiceDetailPage.tsx`
+Same — replace static data with an API fetch.
+
+#### [MODIFY] `src/App.tsx`
+Add `/admin` route (outside the main layout — no header/footer).
+
+---
+
+### 3. Admin Panel — `/admin` route
+
+#### [NEW] `src/pages/admin/AdminLayout.tsx`
+Wrapper with sidebar navigation and auth gate (redirects to login if no token).
+
+#### [NEW] `src/pages/admin/AdminLoginPage.tsx`
+Clean password login form. On success stores JWT in localStorage.
+
+#### [NEW] `src/pages/admin/AdminDashboard.tsx`
+Stats overview: total services, categories, recent additions.
+
+#### [NEW] `src/pages/admin/ServicesListPage.tsx`
+Table of all services with:
+- Search & filter by category
+- Edit / Delete buttons per row
+- "Add service" button → opens form
+
+#### [NEW] `src/pages/admin/ServiceFormPage.tsx`
+Full form to create or edit a service. Fields:
+- Name, category selector, price, duration
+- Description (plain text)
+- Detailed Description (textarea with markdown preview)
+- Toggles: Popular, Special Offer, Requires Consultation, Includes Consultation
+- Benefits (add/remove list)
+- FAQs (add/remove pairs)
+- Image upload for: Hero Image, Gallery Images, Before/After pairs
+- Service video URL
+- Sort order
+
+#### [NEW] `src/pages/admin/CategoriesPage.tsx`
+Manage category list: name, description, requiresConsultation toggle, order.
+
+#### [NEW] `src/components/admin/ImageUploader.tsx`
+Drag-and-drop image upload component — calls `/api/upload`, shows preview.
+
+#### [NEW] `src/components/admin/MarkdownEditor.tsx`
+Split-pane: left = textarea, right = rendered markdown preview (using existing `react-markdown`).
+
+---
+
+### 4. Dev tooling
+
+#### [MODIFY] `package.json`
+Add dependencies:
+```json
+// new dependencies
+"better-sqlite3": "^9.x",
+"express": "^4.x",
+"cors": "^2.x",
+"multer": "^1.x",
+"jsonwebtoken": "^9.x",
+"dotenv": "^16.x"
+// new devDependencies
+"@types/better-sqlite3": "^9.x",
+"@types/multer": "^1.x",
+"@types/jsonwebtoken": "^9.x",
+"concurrently": "^8.x",
+"nodemon": "^3.x"
+```
+
+Add scripts:
+```json
+"server":     "node server/index.js",
+"server:dev": "nodemon server/index.js",
+"dev":        "concurrently \"npm run server:dev\" \"vite\"",
+"seed":       "node server/seed.js"
+```
+
+#### [NEW] `.env`
+```
+ADMIN_PASSWORD=changeme
+JWT_SECRET=your-secret-key
+PORT=3001
+DB_PATH=./server/services.db
+UPLOADS_DIR=./public/uploads
+```
+
+#### [MODIFY] `vite.config.ts`
+Add proxy for API calls in dev:
+```ts
+server: {
+  proxy: {
+    '/api': 'http://localhost:3001'
+  }
+}
+```
+
+---
+
+## Verification Plan
+
+### Automated
+- Run `npm run seed` → verify DB has all existing services
+- `curl GET /api/services` → returns JSON array
+- `curl GET /api/categories` → returns JSON array
+- `curl POST /api/auth/login` with correct password → returns token
+- Admin panel loads at `/admin` and redirects to login
+
+### Manual
+1. Open existing `/services` page → loads from API, looks identical
+2. Open `/admin`, log in, see service list
+3. Create a new service → appears on `/services` page
+4. Edit a service → changes reflected immediately
+5. Upload image → appears in `public/uploads/`, usable as heroImage
+6. Delete a service → gone from list
+7. Reorder categories → order reflects on frontend
