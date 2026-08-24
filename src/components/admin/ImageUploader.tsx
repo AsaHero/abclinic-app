@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
-import { uploadFile } from '@/api/services';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
+"use client";
+
+import React, { useRef, useState } from "react";
+import { Upload, X, Image as ImageIcon } from "lucide-react";
 
 interface ImageUploaderProps {
   value?: string;
@@ -15,17 +16,23 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ value, onChange, label })
   const [error, setError] = useState<string | null>(null);
 
   const handleFile = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setError('Only image files are allowed');
+    if (!file.type.startsWith("image/")) {
+      setError("Допустимы только файлы изображений");
       return;
     }
     setError(null);
     setUploading(true);
     try {
-      const { url } = await uploadFile(file);
-      onChange(url);
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error ?? "Не удалось загрузить");
+      }
+      onChange(data.url);
     } catch (e: any) {
-      setError(e.message ?? 'Upload failed');
+      setError(e.message ?? "Не удалось загрузить");
     } finally {
       setUploading(false);
     }
@@ -57,7 +64,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ value, onChange, label })
           />
           <button
             type="button"
-            onClick={() => onChange('')}
+            onClick={() => onChange("")}
+            aria-label="Удалить изображение"
             className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full hover:bg-red-600 transition-colors"
           >
             <X size={12} />
@@ -69,8 +77,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ value, onChange, label })
       <div
         className={`relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
           dragging
-            ? 'border-blue-400 bg-blue-500/10'
-            : 'border-white/20 hover:border-white/40 bg-white/5'
+            ? "border-blue-400 bg-blue-500/10"
+            : "border-white/20 hover:border-white/40 bg-white/5"
         }`}
         onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
@@ -80,13 +88,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ value, onChange, label })
         {uploading ? (
           <div className="flex flex-col items-center gap-2">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-400" />
-            <p className="text-sm text-gray-400">Uploading…</p>
+            <p className="text-sm text-gray-400">Загрузка…</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2 text-gray-400">
             {value ? <ImageIcon size={24} /> : <Upload size={24} />}
-            <p className="text-sm">{value ? 'Click or drag to replace' : 'Click or drag image here'}</p>
-            <p className="text-xs text-gray-500">PNG, JPG, WEBP up to 10 MB</p>
+            <p className="text-sm">{value ? "Нажмите или перетащите, чтобы заменить" : "Нажмите или перетащите изображение сюда"}</p>
+            <p className="text-xs text-gray-500">PNG, JPG, WEBP до 10 МБ</p>
           </div>
         )}
         <input
@@ -101,9 +109,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ value, onChange, label })
       {/* Manual URL input */}
       <input
         type="text"
-        value={value ?? ''}
+        value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="/images/example.jpg or paste URL"
+        placeholder="/images/example.jpg или вставьте URL"
         className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-400"
       />
 

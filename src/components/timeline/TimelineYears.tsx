@@ -1,5 +1,8 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
-import { motion, useAnimation, AnimatePresence } from 'framer-motion';
+"use client";
+
+// src/components/timeline/TimelineYears.tsx
+import { useRef, useEffect, useState } from "react";
+import { motion, useAnimation, AnimatePresence } from "framer-motion";
 
 interface TimelineYearsProps {
   years: number[];
@@ -104,8 +107,8 @@ const TimelineYears = ({ years, activeYear, onYearClick }: TimelineYearsProps) =
     checkWidth();
 
     // Add resize listener
-    window.addEventListener('resize', checkWidth);
-    return () => window.removeEventListener('resize', checkWidth);
+    window.addEventListener("resize", checkWidth);
+    return () => window.removeEventListener("resize", checkWidth);
   }, [years]);
 
   // Scroll to active year when it changes (only in scrollable mode)
@@ -128,26 +131,23 @@ const TimelineYears = ({ years, activeYear, onYearClick }: TimelineYearsProps) =
       // Smooth scroll to the position
       container.scrollTo({
         left: scrollLeft,
-        behavior: 'smooth',
+        behavior: "smooth",
       });
     }
   }, [activeYear, useFullWidth, years, lineControls]);
 
   // Function to scroll the timeline left or right
-  const handleScroll = (direction: 'left' | 'right') => {
+  const handleScroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current;
       const scrollAmount = container.clientWidth * 0.5; // Scroll by half the container width
 
       container.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
       });
     }
   };
-
-  // Find the current active year index
-  const activeIndex = years.findIndex((year) => year === activeYear);
 
   return (
     <div className="relative w-full py-12">
@@ -161,7 +161,7 @@ const TimelineYears = ({ years, activeYear, onYearClick }: TimelineYearsProps) =
             transition={{ delay: 0.5 }}
           >
             <motion.button
-              onClick={() => handleScroll('left')}
+              onClick={() => handleScroll("left")}
               className="p-3 bg-gray-800/50 hover:bg-gray-700/70 rounded-full text-white border border-white/10 backdrop-blur-sm
                 transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/20"
               aria-label="Scroll timeline left"
@@ -193,7 +193,7 @@ const TimelineYears = ({ years, activeYear, onYearClick }: TimelineYearsProps) =
             transition={{ delay: 0.5 }}
           >
             <motion.button
-              onClick={() => handleScroll('right')}
+              onClick={() => handleScroll("right")}
               className="p-3 bg-gray-800/50 hover:bg-gray-700/70 rounded-full text-white border border-white/10 backdrop-blur-sm
                 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/20"
               aria-label="Scroll timeline right"
@@ -232,29 +232,28 @@ const TimelineYears = ({ years, activeYear, onYearClick }: TimelineYearsProps) =
         {/* Premium scrolling container */}
         <div
           ref={scrollContainerRef}
-          className={`py-4 ${!useFullWidth ? 'overflow-x-auto scrollbar-hide' : 'overflow-visible'}`}
+          className={`py-4 ${!useFullWidth ? "overflow-x-auto scrollbar-hide" : "overflow-visible"}`}
           style={{
-            scrollbarWidth: 'none', // Firefox
-            msOverflowStyle: 'none', // IE/Edge
+            scrollbarWidth: "none", // Firefox
+            msOverflowStyle: "none", // IE/Edge
           }}
         >
           {/* Timeline years with premium styling */}
           <div
-            className={`flex items-center ${useFullWidth ? 'justify-between w-full' : ''} relative`}
+            className={`flex items-center ${useFullWidth ? "justify-between w-full" : ""} relative`}
             style={
               !useFullWidth
-                ? { minWidth: 'max-content', paddingLeft: '4rem', paddingRight: '4rem' }
+                ? { minWidth: "max-content", paddingLeft: "4rem", paddingRight: "4rem" }
                 : {}
             }
           >
-
             {years.map((year, index) => (
               <div
                 key={year}
                 className="flex items-center"
                 style={
                   !useFullWidth
-                    ? { minWidth: index < years.length - 1 ? '180px' : '80px' }
+                    ? { minWidth: index < years.length - 1 ? "180px" : "80px" }
                     : { flex: 1 }
                 }
               >
@@ -268,7 +267,7 @@ const TimelineYears = ({ years, activeYear, onYearClick }: TimelineYearsProps) =
                   <motion.button
                     onClick={() => handleYearClick(year, index)}
                     className={`group flex flex-col items-center focus:outline-none ${
-                      year === activeYear ? 'cursor-default' : 'cursor-pointer'
+                      year === activeYear ? "cursor-default" : "cursor-pointer"
                     }`}
                     disabled={animating || year === activeYear}
                     aria-label={`View ${year} timeline`}
@@ -279,8 +278,8 @@ const TimelineYears = ({ years, activeYear, onYearClick }: TimelineYearsProps) =
                     <motion.span
                       className={`text-3xl md:text-5xl transition-all duration-300 ${
                         year === activeYear
-                          ? 'text-white font-semibold'
-                          : 'text-gray-500 group-hover:text-gray-300'
+                          ? "text-white font-semibold"
+                          : "text-gray-500 group-hover:text-gray-300"
                       }`}
                       initial={false}
                       animate={{
@@ -313,7 +312,7 @@ const TimelineYears = ({ years, activeYear, onYearClick }: TimelineYearsProps) =
                 {index < years.length - 1 && (
                   <div
                     className="flex justify-evenly items-center"
-                    style={useFullWidth ? { flex: 1 } : { width: '100px' }}
+                    style={useFullWidth ? { flex: 1 } : { width: "100px" }}
                   >
                     {generateTickMarks(index)}
                   </div>
@@ -335,7 +334,7 @@ const TimelineYears = ({ years, activeYear, onYearClick }: TimelineYearsProps) =
           <div className="flex items-center justify-center space-x-2">
             <motion.div
               animate={{ x: [-5, 5, -5] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <svg
                 width="16"
@@ -356,7 +355,7 @@ const TimelineYears = ({ years, activeYear, onYearClick }: TimelineYearsProps) =
             <span>Проведите для навигации</span>
             <motion.div
               animate={{ x: [5, -5, 5] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <svg
                 width="16"

@@ -1,11 +1,13 @@
-// src/components/CategoryInformation.tsx
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { InfoIcon, AlertTriangle, Calendar, HelpCircle, UserCheck, User } from 'lucide-react';
-import { motion } from 'framer-motion';
+"use client";
+
+// src/components/services/CategoryInformation.tsx
+import React from "react";
+import Link from "next/link";
+import { AlertTriangle, Calendar, HelpCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface CategoryInformationProps {
-  requiresConsultation: boolean;
+  requiresConsultation?: boolean;
   onToggleClientType: (isNew: boolean) => void;
   setIsHowItWorksModalOpen: (isOpen: boolean) => void;
 }
@@ -24,9 +26,9 @@ const CategoryInformation: React.FC<CategoryInformationProps> = ({
       {requiresConsultation && (
         <div className="relative">
           {/* Accent top border */}
-          <div className="h-1 w-full bg-gradient-to-r from-blue-500 to-teal-400"></div>
+          <div className="h-1 w-full bg-gradient-to-r from-forest-500 to-forest-400"></div>
 
-          <div className="p-6 bg-gradient-to-br from-[#1E2329]/95 to-[#252A32]/95 backdrop-blur-sm">
+          <div className="p-6 bg-gradient-to-br from-[#002a27]/95 to-[#003932]/95 backdrop-blur-sm">
             <div className="flex items-start gap-4">
               <div className="rounded-full p-3 bg-red-500/20 text-red-400 flex-shrink-0 mt-1">
                 <AlertTriangle size={22} />
@@ -35,17 +37,16 @@ const CategoryInformation: React.FC<CategoryInformationProps> = ({
               <div>
                 <h3 className="text-xl font-medium text-white mb-2">Требуется консультация</h3>
                 <p className="text-gray-300 mb-4">
-                  Для услуг в данной категории необходима предварительная консультация и
-                  диагностика. Это важный шаг, позволяющий составить персональный план лечения и
-                  гарантировать наилучший результат.
+                  Для услуг в данной категории необходима предварительная консультация и диагностика. Это важный
+                  шаг, позволяющий составить персональный план лечения и гарантировать наилучший результат.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
                   <Link
-                    to="/services/consult-diagnostic"
-                    className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500
+                    href="/services/consult-diagnostic"
+                    className="bg-gradient-to-r from-forest-500 to-forest-400 hover:from-forest-600 hover:to-forest-500
                     text-white font-medium px-5 py-3 rounded-lg inline-flex items-center justify-center
-                    transition-all shadow-lg hover:shadow-blue-500/20"
+                    transition-all shadow-lg hover:shadow-forest-500/20"
                   >
                     <Calendar size={18} className="mr-2" />
                     Записаться на консультацию

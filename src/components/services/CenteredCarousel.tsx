@@ -1,48 +1,55 @@
-// First, install the required dependencies:
-// npm install embla-carousel-react embla-carousel-autoplay
+"use client";
 
-// src/components/CenteredCarousel.tsx
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Clock, AlertCircle, Check } from 'lucide-react';
-import { requiresConsultation } from '@/types/serviceData';
-import { useQuery } from '@tanstack/react-query';
-import { getCategories } from '@/api/services';
-import useEmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
+// src/components/services/CenteredCarousel.tsx
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { ChevronLeft, ChevronRight, Clock, AlertCircle, Check } from "lucide-react";
+import { requiresConsultation } from "@/types/serviceData";
+import type { PriceItem, ServiceCategory } from "@/types/serviceData";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 
 interface CarouselItemProps {
-  service: any;
+  service: PriceItem;
   isActive: boolean;
   onClick: () => void;
-  categories: { id: string; title: string }[];
+  categories: ServiceCategory[];
 }
 
 const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick, categories }) => {
+  const router = useRouter();
   if (!service) return null;
+
+  const activate = () => {
+    if (isActive) {
+      router.push(`/services/${service.id}`);
+    } else {
+      onClick();
+    }
+  };
 
   // Find category safely with optional chaining
   const categoryTitle = service?.category
-    ? categories.find((cat) => cat.id === service.category)?.title || 'Без категории'
-    : 'Без категории';
+    ? categories.find((cat) => cat.id === service.category)?.title || "Без категории"
+    : "Без категории";
 
   // Check if service requires consultation
   const needsConsultation = requiresConsultation(service);
 
   // Define animation variants
-  const itemVariants = {
+  const itemVariants: Variants = {
     active: {
       scale: 1,
       opacity: 1,
       zIndex: 10,
-      transition: { duration: 0.4, type: 'spring', stiffness: 300, damping: 20 },
+      transition: { duration: 0.4, type: "spring", stiffness: 300, damping: 20 },
     },
     inactive: {
       scale: 0.85,
       opacity: 0.6,
       zIndex: 0,
-      transition: { duration: 0.4, type: 'spring', stiffness: 300, damping: 20 },
+      transition: { duration: 0.4, type: "spring", stiffness: 300, damping: 20 },
     },
     hover: {
       scale: isActive ? 1.03 : 0.88,
@@ -58,20 +65,20 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
         w-[340px] sm:w-[400px]
         h-[400px] sm:h-[420px]
         transition-all
-        bg-gradient-to-br from-[#1E2329] to-[#252A32]
+        bg-gradient-to-br from-[#002a27] to-[#003932]
         rounded-xl shadow-lg
         flex-shrink-0
         overflow-hidden
       "
       initial="inactive"
-      animate={isActive ? 'active' : 'inactive'}
+      animate={isActive ? "active" : "inactive"}
       whileHover="hover"
       variants={itemVariants}
     >
       {/* Subtle gradient overlay when active */}
       {isActive && (
         <motion.div
-          className="absolute inset-0 bg-gradient-to-t from-blue-600/10 to-transparent pointer-events-none"
+          className="absolute inset-0 bg-gradient-to-t from-forest-600/10 to-transparent pointer-events-none"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
@@ -81,7 +88,7 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
       {/* Animated highlight border when active */}
       {isActive && !service.isSpecialOffer && (
         <motion.div
-          className="absolute inset-0 rounded-xl border-2 border-blue-400/30 pointer-events-none"
+          className="absolute inset-0 rounded-xl border-2 border-forest-400/30 pointer-events-none"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
@@ -94,33 +101,34 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
           <div
             className="absolute -inset-[100%] bg-gradient-to-r from-amber-500 via-pink-500 to-violet-500"
             style={{
-              animation: 'rotate-gradient 3s linear infinite',
+              animation: "rotate-gradient 3s linear infinite",
             }}
           />
-          <div className="absolute inset-[2px] rounded-lg bg-gradient-to-br from-[#1E2329] to-[#252A32]" />
+          <div className="absolute inset-[2px] rounded-lg bg-gradient-to-br from-[#002a27] to-[#003932]" />
         </div>
       )}
 
       <div
-        className={`block p-6 h-full flex flex-col cursor-pointer ${service.isSpecialOffer && 'relative z-10'}`}
+        className={`p-6 h-full flex flex-col cursor-pointer ${service.isSpecialOffer && "relative z-10"}`}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          
-          if (isActive) {
-            // If active, navigate to service page
-            window.location.href = `/services/${service.id}`;
-          } else {
-            // If not active, just make it active
-            onClick();
+          activate();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            activate();
           }
         }}
+        role="button"
+        tabIndex={0}
         aria-label={isActive ? `Подробнее о услуге: ${service.name}` : `Выбрать услугу: ${service.name}`}
       >
         <div className="mb-4">
           <motion.span
-            className="text-gray-400 text-sm block mb-1 flex items-center"
-            animate={isActive ? { color: '#94A3B8' } : { color: '#6B7280' }}
+            className="text-gray-400 text-sm mb-1 flex items-center"
+            animate={isActive ? { color: "#94A3B8" } : { color: "#6B7280" }}
           >
             <Clock size={14} className="mr-2" />
             {service.duration}
@@ -129,8 +137,8 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
             className="text-xl font-medium text-white mb-2"
             animate={
               isActive
-                ? { fontSize: '1.5rem', lineHeight: '2rem' }
-                : { fontSize: '1.25rem', lineHeight: '1.75rem' }
+                ? { fontSize: "1.5rem", lineHeight: "2rem" }
+                : { fontSize: "1.25rem", lineHeight: "1.75rem" }
             }
             transition={{ duration: 0.3 }}
           >
@@ -138,16 +146,16 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
           </motion.h3>
           {service.price && (
             <motion.span
-              className="text-blue-400 font-semibold text-lg"
+              className="text-forest-400 font-semibold text-lg"
               animate={
                 isActive
-                  ? { fontSize: '1.25rem', opacity: 1 }
-                  : { fontSize: '1.125rem', opacity: 0.8 }
+                  ? { fontSize: "1.25rem", opacity: 1 }
+                  : { fontSize: "1.125rem", opacity: 0.8 }
               }
               transition={{ duration: 0.3 }}
             >
-              {typeof service.price === 'number'
-                ? `${service.price.toLocaleString('ru-RU')} сум`
+              {typeof service.price === "number"
+                ? `${service.price.toLocaleString("ru-RU")} сум`
                 : `${service.price} сум`}
             </motion.span>
           )}
@@ -160,7 +168,7 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
               <motion.p
                 className="text-gray-300 mb-6 text-sm flex-grow overflow-hidden line-clamp-3"
                 initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
+                animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
@@ -180,8 +188,8 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
               >
                 {service.popular && (
                   <motion.span
-                    className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full"
-                    whileHover={{ scale: 1.05, backgroundColor: 'rgba(59, 130, 246, 0.3)' }}
+                    className="text-xs px-2 py-0.5 bg-forest-500/20 text-forest-400 rounded-full"
+                    whileHover={{ scale: 1.05, backgroundColor: "rgba(59, 130, 246, 0.3)" }}
                   >
                     Популярно
                   </motion.span>
@@ -190,7 +198,7 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
                 {service.isSpecialOffer && (
                   <motion.span
                     className="text-xs px-2 py-0.5 bg-gradient-to-r from-amber-500/20 via-pink-500/20 to-violet-500/20 text-pink-400 rounded-full"
-                    whileHover={{ scale: 1.05, backgroundColor: 'rgba(236, 72, 153, 0.3)' }}
+                    whileHover={{ scale: 1.05, backgroundColor: "rgba(236, 72, 153, 0.3)" }}
                   >
                     Спецпредложение
                   </motion.span>
@@ -199,7 +207,7 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
                 {service.includesConsultation && (
                   <motion.span
                     className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full flex items-center"
-                    whileHover={{ scale: 1.05, backgroundColor: 'rgba(34, 197, 94, 0.3)' }}
+                    whileHover={{ scale: 1.05, backgroundColor: "rgba(34, 197, 94, 0.3)" }}
                   >
                     <Check size={10} className="mr-1" />
                     Включает консультацию
@@ -209,7 +217,7 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
                 {needsConsultation && !service.includesConsultation && (
                   <motion.span
                     className="text-xs px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded-full flex items-center"
-                    whileHover={{ scale: 1.05, backgroundColor: 'rgba(249, 115, 22, 0.3)' }}
+                    whileHover={{ scale: 1.05, backgroundColor: "rgba(249, 115, 22, 0.3)" }}
                   >
                     <AlertCircle size={10} className="mr-1" />
                     Требуется консультация
@@ -223,15 +231,15 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
         <div className="flex justify-between items-center mt-auto">
           <motion.span
             className="text-xs px-3 py-1 bg-white/10 rounded-full text-gray-300"
-            whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
+            whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.15)" }}
           >
             {categoryTitle}
           </motion.span>
           <motion.span
-            className="text-blue-400 font-medium text-sm flex items-center group"
+            className="text-forest-400 font-medium text-sm flex items-center group"
             whileHover={{ x: 3 }}
           >
-            {isActive ? 'Подробнее' : 'Выбрать'}
+            {isActive ? "Подробнее" : "Выбрать"}
             <motion.svg
               className="w-4 h-4 ml-1"
               fill="none"
@@ -240,7 +248,7 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
               xmlns="http://www.w3.org/2000/svg"
               initial={{ x: 0 }}
               whileHover={{ x: 4 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </motion.svg>
@@ -250,10 +258,10 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
         {/* Animated accent circle */}
         {isActive && (
           <motion.div
-            className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-blue-500/10 blur-2xl pointer-events-none"
+            className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-forest-500/10 blur-2xl pointer-events-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.8 }}
-            transition={{ duration: 1.5, repeat: Infinity, repeatType: 'reverse' }}
+            transition={{ duration: 1.5, repeat: Infinity, repeatType: "reverse" }}
           />
         )}
       </div>
@@ -262,23 +270,18 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ service, isActive, onClick,
 };
 
 interface CenteredCarouselProps {
-  popularServices: any[];
+  popularServices: PriceItem[];
   isNewClient: boolean;
+  categories: ServiceCategory[];
 }
 
-const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, isNewClient }) => {
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: getCategories,
-    staleTime: 5 * 60 * 1000,
-  });
-
+const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, categories }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
-  const [emblaMainRef, emblaMainApi] = useEmblaCarousel({ loop: false });
-  const [emblaThumbsRef, emblaThumbsApi] = useEmblaCarousel({
-    containScroll: 'keepSnaps',
+  useEmblaCarousel({ loop: false });
+  useEmblaCarousel({
+    containScroll: "keepSnaps",
     dragFree: true,
   });
 
@@ -286,25 +289,25 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
   // We'll duplicate the services array to ensure smooth infinite scrolling
   const duplicatedServices = React.useMemo(() => {
     if (popularServices.length === 0) return [];
-    
+
     // Create enough copies for smooth infinite loop
     const copies = Math.max(3, Math.ceil(20 / popularServices.length));
     const result = [];
-    
+
     for (let i = 0; i < copies; i++) {
       result.push(...popularServices);
     }
-    
+
     return result;
   }, [popularServices]);
 
   // Autoplay plugin configuration
   const autoplayRef = useRef(
-    Autoplay({ 
-      delay: 5000, 
-      stopOnInteraction: false, 
+    Autoplay({
+      delay: 5000,
+      stopOnInteraction: false,
       stopOnMouseEnter: true,
-      stopOnLastSnap: false
+      stopOnLastSnap: false,
     })
   );
 
@@ -312,7 +315,7 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
   const [emblaRef, emblaApi] = useEmblaCarousel(
     {
       loop: true, // Enable native loop
-      align: 'center',
+      align: "center",
       skipSnaps: false,
       dragFree: false,
       slidesToScroll: 1,
@@ -322,10 +325,13 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
   );
 
   // Map carousel index to original service index
-  const getServiceIndex = useCallback((emblaIndex: number) => {
-    if (popularServices.length === 0) return 0;
-    return emblaIndex % popularServices.length;
-  }, [popularServices.length]);
+  const getServiceIndex = useCallback(
+    (emblaIndex: number) => {
+      if (popularServices.length === 0) return 0;
+      return emblaIndex % popularServices.length;
+    },
+    [popularServices.length]
+  );
 
   // Update selected index when carousel changes
   const onSelect = useCallback(() => {
@@ -339,12 +345,12 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
     if (!emblaApi) return;
 
     onSelect();
-    emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', onSelect);
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
 
     return () => {
-      emblaApi.off('select', onSelect);
-      emblaApi.off('reInit', onSelect);
+      emblaApi.off("select", onSelect);
+      emblaApi.off("reInit", onSelect);
     };
   }, [emblaApi, onSelect]);
 
@@ -359,7 +365,7 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
 
   // Add global styles
   useEffect(() => {
-    const styleEl = document.createElement('style');
+    const styleEl = document.createElement("style");
     styleEl.textContent = `
       /* Rotating gradient border animation */
       @keyframes rotate-gradient {
@@ -375,11 +381,11 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
       .embla {
         overflow: hidden;
       }
-      
+
       .embla__container {
         display: flex;
       }
-      
+
       .embla__slide {
         flex: 0 0 auto;
         min-width: 0;
@@ -395,7 +401,7 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
           flex: 0 0 400px;
         }
       }
-      
+
       @media (max-width: 639px) {
         .embla__slide {
           flex: 0 0 340px;
@@ -418,48 +424,54 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
-  const scrollTo = useCallback((targetServiceIndex: number) => {
-    if (!emblaApi) return;
-    
-    // Find the closest slide to current position with the target service
-    const currentSlide = emblaApi.selectedScrollSnap();
-    const currentServiceIndex = getServiceIndex(currentSlide);
-    
-    // Calculate direction to minimize distance
-    let targetSlide;
-    if (targetServiceIndex > currentServiceIndex) {
-      // Going forward
-      const stepsForward = targetServiceIndex - currentServiceIndex;
-      const stepsBackward = (currentServiceIndex + popularServices.length) - targetServiceIndex;
-      
-      if (stepsForward <= stepsBackward) {
-        targetSlide = currentSlide + stepsForward;
+  const scrollTo = useCallback(
+    (targetServiceIndex: number) => {
+      if (!emblaApi) return;
+
+      // Find the closest slide to current position with the target service
+      const currentSlide = emblaApi.selectedScrollSnap();
+      const currentServiceIndex = getServiceIndex(currentSlide);
+
+      // Calculate direction to minimize distance
+      let targetSlide;
+      if (targetServiceIndex > currentServiceIndex) {
+        // Going forward
+        const stepsForward = targetServiceIndex - currentServiceIndex;
+        const stepsBackward = currentServiceIndex + popularServices.length - targetServiceIndex;
+
+        if (stepsForward <= stepsBackward) {
+          targetSlide = currentSlide + stepsForward;
+        } else {
+          targetSlide = currentSlide - stepsBackward;
+        }
+      } else if (targetServiceIndex < currentServiceIndex) {
+        // Going backward
+        const stepsBackward = currentServiceIndex - targetServiceIndex;
+        const stepsForward = targetServiceIndex + popularServices.length - currentServiceIndex;
+
+        if (stepsBackward <= stepsForward) {
+          targetSlide = currentSlide - stepsBackward;
+        } else {
+          targetSlide = currentSlide + stepsForward;
+        }
       } else {
-        targetSlide = currentSlide - stepsBackward;
+        // Same service, no need to move
+        return;
       }
-    } else if (targetServiceIndex < currentServiceIndex) {
-      // Going backward
-      const stepsBackward = currentServiceIndex - targetServiceIndex;
-      const stepsForward = (targetServiceIndex + popularServices.length) - currentServiceIndex;
-      
-      if (stepsBackward <= stepsForward) {
-        targetSlide = currentSlide - stepsBackward;
-      } else {
-        targetSlide = currentSlide + stepsForward;
-      }
-    } else {
-      // Same service, no need to move
-      return;
-    }
-    
-    emblaApi.scrollTo(targetSlide);
-  }, [emblaApi, getServiceIndex, popularServices.length]);
+
+      emblaApi.scrollTo(targetSlide);
+    },
+    [emblaApi, getServiceIndex, popularServices.length]
+  );
 
   // Handle card click
-  const handleCardClick = useCallback((slideIndex: number) => {
-    const serviceIndex = getServiceIndex(slideIndex);
-    scrollTo(serviceIndex);
-  }, [getServiceIndex, scrollTo]);
+  const handleCardClick = useCallback(
+    (slideIndex: number) => {
+      const serviceIndex = getServiceIndex(slideIndex);
+      scrollTo(serviceIndex);
+    },
+    [getServiceIndex, scrollTo]
+  );
 
   // Hover handlers
   const handleMouseEnter = useCallback(() => {
@@ -484,11 +496,7 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
   const showNavigation = popularServices.length > 1;
 
   return (
-    <div
-      className="relative w-full py-10"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className="relative w-full py-10" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       {/* Navigation controls - left arrow */}
       {showNavigation && (
         <motion.div
@@ -498,16 +506,16 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
             opacity: isHovering ? 1 : 0,
             x: isHovering ? 0 : -20,
           }}
-          transition={{ 
+          transition={{
             duration: 0.3,
-            ease: "easeOut"
+            ease: "easeOut",
           }}
         >
           <motion.button
             onClick={scrollPrev}
-            className="pointer-events-auto p-3 rounded-full bg-[#252A32]/80 backdrop-blur-sm hover:bg-[#353A42]/80 transition-all text-white shadow-lg"
+            className="pointer-events-auto p-3 rounded-full bg-[#003932]/80 backdrop-blur-sm hover:bg-[#00463c]/80 transition-all text-white shadow-lg"
             aria-label="Предыдущая услуга"
-            whileHover={{ scale: 1.1, backgroundColor: 'rgba(59, 130, 246, 0.2)' }}
+            whileHover={{ scale: 1.1, backgroundColor: "rgba(59, 130, 246, 0.2)" }}
             whileTap={{ scale: 0.95 }}
             onMouseEnter={handleMouseEnter}
           >
@@ -539,7 +547,6 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
                     onClick={() => handleCardClick(slideIndex)}
                     categories={categories}
                   />
-                  
                 </motion.div>
               </div>
             );
@@ -556,16 +563,16 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
             opacity: isHovering ? 1 : 0,
             x: isHovering ? 0 : 20,
           }}
-          transition={{ 
+          transition={{
             duration: 0.3,
-            ease: "easeOut"
+            ease: "easeOut",
           }}
         >
           <motion.button
             onClick={scrollNext}
-            className="pointer-events-auto p-3 rounded-full bg-[#252A32]/80 backdrop-blur-sm hover:bg-[#353A42]/80 transition-all text-white shadow-lg"
+            className="pointer-events-auto p-3 rounded-full bg-[#003932]/80 backdrop-blur-sm hover:bg-[#00463c]/80 transition-all text-white shadow-lg"
             aria-label="Следующая услуга"
-            whileHover={{ scale: 1.1, backgroundColor: 'rgba(59, 130, 246, 0.2)' }}
+            whileHover={{ scale: 1.1, backgroundColor: "rgba(59, 130, 246, 0.2)" }}
             whileTap={{ scale: 0.95 }}
             onMouseEnter={handleMouseEnter}
           >
@@ -586,23 +593,23 @@ const CenteredCarousel: React.FC<CenteredCarouselProps> = ({ popularServices, is
               initial={{ width: 8 }}
               animate={{
                 width: index === selectedIndex ? 24 : 8,
-                backgroundColor: index === selectedIndex ? '#3B82F6' : '#4B5563',
+                backgroundColor: index === selectedIndex ? "#006A59" : "#4B5563",
               }}
               whileHover={{
                 width: index === selectedIndex ? 24 : 16,
-                backgroundColor: index === selectedIndex ? '#3B82F6' : '#6B7280',
+                backgroundColor: index === selectedIndex ? "#006A59" : "#6B7280",
               }}
               transition={{ duration: 0.3 }}
             >
               {index === selectedIndex && (
                 <motion.div
-                  className="absolute inset-0 bg-blue-400/50"
-                  initial={{ x: '-100%' }}
-                  animate={{ x: '100%' }}
+                  className="absolute inset-0 bg-forest-400/50"
+                  initial={{ x: "-100%" }}
+                  animate={{ x: "100%" }}
                   transition={{
                     duration: 5,
                     repeat: Infinity,
-                    ease: 'linear',
+                    ease: "linear",
                     repeatDelay: 0,
                   }}
                 />

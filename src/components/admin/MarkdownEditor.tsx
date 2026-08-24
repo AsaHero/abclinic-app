@@ -1,7 +1,9 @@
-import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkBreaks from 'remark-breaks';
+"use client";
+
+import React from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 
 interface MarkdownEditorProps {
   value: string;
@@ -20,14 +22,14 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, rows =
           onChange={(e) => onChange(e.target.value)}
           rows={rows}
           className="flex-1 w-full bg-[#12161b] border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-200 font-mono leading-relaxed focus:outline-none focus:border-blue-400 resize-y"
-          placeholder="Write markdown here…"
+          placeholder="Введите markdown здесь…"
           spellCheck={false}
         />
       </div>
 
       {/* Preview pane */}
       <div className="flex flex-col overflow-hidden">
-        <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wider">Preview</p>
+        <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wider">Предпросмотр</p>
         <div
           className="flex-1 bg-[#12161b] border border-white/10 rounded-lg px-4 py-3 overflow-y-auto
             prose prose-sm prose-invert max-w-none
@@ -41,7 +43,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange, rows =
               {value}
             </ReactMarkdown>
           ) : (
-            <p className="text-gray-600 italic text-sm">Preview will appear here…</p>
+            <p className="text-gray-600 italic text-sm">Предпросмотр появится здесь…</p>
           )}
         </div>
       </div>

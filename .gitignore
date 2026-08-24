@@ -12,7 +12,15 @@ dist
 dist-ssr
 *.local
 .env
-server/services.db
+
+# Next.js
+.next
+out
+*.tsbuildinfo
+
+# Local SQLite data + generated session-signing secret
+data
+.session-secret
 
 # Editor directories and files
 .vscode/*

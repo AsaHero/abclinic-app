@@ -1,0 +1,12 @@
+services:
+  app:
+    image: ${APP_IMAGE}
+    container_name: abclinic-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - /opt/abclinic/data:/data
+      - /opt/abclinic/uploads:/app/public/uploads
+    env_file:
+      - .env
