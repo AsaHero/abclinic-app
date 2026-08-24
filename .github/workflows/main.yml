@@ -70,13 +70,15 @@ jobs:
           APP_IMAGE="ghcr.io/${{ steps.owner.outputs.name }}/abclinic-app:latest"
           export APP_IMAGE
           envsubst < docker-compose.yml > /tmp/docker-compose.yml
-          scp /tmp/docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/opt/abclinic/docker-compose.app.yml
+          scp /tmp/docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/opt/abclinic/docker-compose.yml
 
       - name: Pull image and redeploy via compose
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin && \
             mkdir -p /opt/abclinic/data /opt/abclinic/uploads && \
-            docker compose -f /opt/abclinic/docker-compose.app.yml pull && \
-            docker compose -f /opt/abclinic/docker-compose.app.yml up -d
+            docker stop abclinic-server >/dev/null 2>&1 || true && \
+            docker rm abclinic-server >/dev/null 2>&1 || true && \
+            docker compose -f /opt/abclinic/docker-compose.yml pull && \
+            docker compose -f /opt/abclinic/docker-compose.yml up -d
           "
