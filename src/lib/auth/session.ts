@@ -9,11 +9,16 @@ import path from "node:path";
  * can no longer read the token. No dependency beyond built-in node:crypto,
  * same pattern as the sibling ab-crm project.
  *
- * Signing secret is generated once and lives in `.session-secret` at the
- * project root (gitignored, mode 0600) — no .env setup required for it.
+ * Signing secret is generated once and lives in `.session-secret` (gitignored,
+ * mode 0600) — no .env setup required for it. Defaults to the project root
+ * for local dev; in the Docker image SESSION_SECRET_PATH points at /data
+ * instead, since the standalone runner's /app is root-owned and unwritable
+ * by the nextjs user (same reason DB_PATH/UPLOADS_DIR are overridable).
  */
 
-const SECRET_PATH = path.join(process.cwd(), ".session-secret");
+const SECRET_PATH = process.env.SESSION_SECRET_PATH
+  ? path.resolve(process.cwd(), process.env.SESSION_SECRET_PATH)
+  : path.join(process.cwd(), ".session-secret");
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 export const SESSION_COOKIE_NAME = "abclinic_admin_session";

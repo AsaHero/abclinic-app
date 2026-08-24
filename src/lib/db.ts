@@ -38,6 +38,7 @@ db.exec(`
     isSpecialOffer       INTEGER DEFAULT 0,
     includesConsultation INTEGER DEFAULT 0,
     requiresConsultation INTEGER DEFAULT 0,
+    isPublic             INTEGER DEFAULT 1,
     benefits             TEXT,
     process              TEXT,
     suitableFor          TEXT,
@@ -100,5 +101,13 @@ db.exec(`
     updatedAt   TEXT DEFAULT (datetime('now'))
   );
 `);
+
+// isPublic was added after the old server's services.db was already in use —
+// CREATE TABLE IF NOT EXISTS above won't add it to a pre-existing table, so
+// backfill it here for DBs created before this column existed.
+const serviceColumns = db.prepare("PRAGMA table_info(services)").all() as { name: string }[];
+if (!serviceColumns.some((col) => col.name === "isPublic")) {
+  db.exec("ALTER TABLE services ADD COLUMN isPublic INTEGER DEFAULT 1");
+}
 
 export default db;
