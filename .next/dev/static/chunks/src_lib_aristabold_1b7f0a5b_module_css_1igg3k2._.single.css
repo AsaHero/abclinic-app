@@ -1,0 +1,25 @@
+/* [project]/src/lib/aristabold_1b7f0a5b.module.css [app-client] (css) */
+@font-face {
+  font-family: aristaBold;
+  src: url("../media/AristaPro_Bold-s.p.19bkyoy73o_cl.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: aristaBold Fallback;
+  src: local(Arial);
+  ascent-override: 86.72%;
+  descent-override: 24.88%;
+  line-gap-override: 0.0%;
+  size-adjust: 97.92%;
+}
+
+.aristabold_1b7f0a5b-module__HSTe_W__className {
+  font-family: aristaBold, aristaBold Fallback;
+}
+
+.aristabold_1b7f0a5b-module__HSTe_W__variable {
+  --font-arista-bold: "aristaBold", "aristaBold Fallback";
+}
+
+/*# sourceMappingURL=src_lib_aristabold_1b7f0a5b_module_css_1igg3k2._.single.css.map*/

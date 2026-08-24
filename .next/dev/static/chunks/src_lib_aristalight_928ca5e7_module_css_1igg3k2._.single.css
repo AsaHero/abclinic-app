@@ -1,0 +1,25 @@
+/* [project]/src/lib/aristalight_928ca5e7.module.css [app-client] (css) */
+@font-face {
+  font-family: aristaLight;
+  src: url("../media/AristaPro_Light-s.p.23bmzq2n_uwzl.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: aristaLight Fallback;
+  src: local(Arial);
+  ascent-override: 89.58%;
+  descent-override: 25.7%;
+  line-gap-override: 0.0%;
+  size-adjust: 94.79%;
+}
+
+.aristalight_928ca5e7-module__6kUkoW__className {
+  font-family: aristaLight, aristaLight Fallback;
+}
+
+.aristalight_928ca5e7-module__6kUkoW__variable {
+  --font-arista-light: "aristaLight", "aristaLight Fallback";
+}
+
+/*# sourceMappingURL=src_lib_aristalight_928ca5e7_module_css_1igg3k2._.single.css.map*/

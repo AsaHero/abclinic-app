@@ -1,7 +1,9 @@
+"use client";
+
 // components/services/BeforeAfterGallery.tsx
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface BeforeAfterImage {
   before: string;
@@ -32,11 +34,11 @@ const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({ images }) => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#1E2329] to-[#252A32] rounded-xl overflow-hidden shadow-xl shadow-black/20">
-      <div className="h-1 bg-gradient-to-r from-green-500 to-blue-500"></div>
+    <div className="bg-gradient-to-br from-[#002a27] to-[#003932] rounded-xl overflow-hidden shadow-xl shadow-black/20">
+      <div className="h-1 bg-gradient-to-r from-green-500 to-forest-500"></div>
       <div className="p-4">
         <h3 className="text-lg font-medium mb-3 text-white">До и После</h3>
-        
+
         <div className="relative">
           {/* Image Container - Reduced aspect ratio */}
           <div className="relative aspect-[16/10] rounded-lg overflow-hidden bg-gray-800">
@@ -44,7 +46,7 @@ const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({ images }) => {
               <motion.img
                 key={`${currentIndex}-${showAfter}`}
                 src={showAfter ? currentImage.after : currentImage.before}
-                alt={showAfter ? 'После лечения' : 'До лечения'}
+                alt={showAfter ? "После лечения" : "До лечения"}
                 className="w-full h-full object-cover"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -52,15 +54,13 @@ const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({ images }) => {
                 transition={{ duration: 0.3 }}
               />
             </AnimatePresence>
-            
+
             {/* Before/After Toggle */}
             <div className="absolute bottom-2 left-2 flex bg-black/60 backdrop-blur-sm rounded-md p-0.5">
               <button
                 onClick={() => setShowAfter(false)}
                 className={`px-2 py-1 text-xs rounded transition-all ${
-                  !showAfter 
-                    ? 'bg-white text-black' 
-                    : 'text-white hover:bg-white/20'
+                  !showAfter ? "bg-white text-black" : "text-white hover:bg-white/20"
                 }`}
               >
                 До
@@ -68,9 +68,7 @@ const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({ images }) => {
               <button
                 onClick={() => setShowAfter(true)}
                 className={`px-2 py-1 text-xs rounded transition-all ${
-                  showAfter 
-                    ? 'bg-white text-black' 
-                    : 'text-white hover:bg-white/20'
+                  showAfter ? "bg-white text-black" : "text-white hover:bg-white/20"
                 }`}
               >
                 После
@@ -82,12 +80,14 @@ const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({ images }) => {
               <>
                 <button
                   onClick={prevImage}
+                  aria-label="Предыдущий случай"
                   className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-black/60 backdrop-blur-sm text-white rounded-full flex items-center justify-center hover:bg-black/80 transition-colors"
                 >
                   <ChevronLeft size={12} />
                 </button>
                 <button
                   onClick={nextImage}
+                  aria-label="Следующий случай"
                   className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-black/60 backdrop-blur-sm text-white rounded-full flex items-center justify-center hover:bg-black/80 transition-colors"
                 >
                   <ChevronRight size={12} />
@@ -98,9 +98,7 @@ const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({ images }) => {
 
           {/* Description */}
           {currentImage.description && (
-            <p className="text-xs text-gray-400 mt-2 leading-relaxed line-clamp-3">
-              {currentImage.description}
-            </p>
+            <p className="text-xs text-gray-400 mt-2 leading-relaxed line-clamp-3">{currentImage.description}</p>
           )}
 
           {/* Image counter */}
@@ -113,8 +111,10 @@ const BeforeAfterGallery: React.FC<BeforeAfterGalleryProps> = ({ images }) => {
                     setCurrentIndex(index);
                     setShowAfter(false);
                   }}
+                  aria-label={`Перейти к случаю ${index + 1}`}
+                  aria-current={index === currentIndex}
                   className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                    index === currentIndex ? 'bg-blue-400' : 'bg-gray-600'
+                    index === currentIndex ? "bg-forest-400" : "bg-gray-600"
                   }`}
                 />
               ))}

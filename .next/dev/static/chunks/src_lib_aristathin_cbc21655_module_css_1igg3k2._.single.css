@@ -1,0 +1,25 @@
+/* [project]/src/lib/aristathin_cbc21655.module.css [app-client] (css) */
+@font-face {
+  font-family: aristaThin;
+  src: url("../media/AristaPro_Thin-s.p.1_kgx_082hgx1.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: aristaThin Fallback;
+  src: local(Arial);
+  ascent-override: 91.62%;
+  descent-override: 26.29%;
+  line-gap-override: 0.0%;
+  size-adjust: 92.68%;
+}
+
+.aristathin_cbc21655-module__fUpYPa__className {
+  font-family: aristaThin, aristaThin Fallback;
+}
+
+.aristathin_cbc21655-module__fUpYPa__variable {
+  --font-arista-thin: "aristaThin", "aristaThin Fallback";
+}
+
+/*# sourceMappingURL=src_lib_aristathin_cbc21655_module_css_1igg3k2._.single.css.map*/

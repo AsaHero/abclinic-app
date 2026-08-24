@@ -1,0 +1,25 @@
+/* [project]/src/lib/aristaregular_68a4ecb6.module.css [app-client] (css) */
+@font-face {
+  font-family: aristaRegular;
+  src: url("../media/AristaPro_Regular-s.p.0am1g6_g30mub.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: aristaRegular Fallback;
+  src: local(Arial);
+  ascent-override: 88.62%;
+  descent-override: 25.43%;
+  line-gap-override: 0.0%;
+  size-adjust: 95.81%;
+}
+
+.aristaregular_68a4ecb6-module__OH9rbG__className {
+  font-family: aristaRegular, aristaRegular Fallback;
+}
+
+.aristaregular_68a4ecb6-module__OH9rbG__variable {
+  --font-arista-regular: "aristaRegular", "aristaRegular Fallback";
+}
+
+/*# sourceMappingURL=src_lib_aristaregular_68a4ecb6_module_css_1igg3k2._.single.css.map*/

@@ -1,7 +1,9 @@
+"use client";
+
 // src/components/home/PhotoGallerySection.tsx
-import React, { useRef, useState } from 'react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { X, ZoomIn, ArrowLeft, ArrowRight } from 'lucide-react';
+import React, { useRef, useState } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { X, ZoomIn, ArrowLeft, ArrowRight } from "lucide-react";
 
 // Gallery photo interface
 interface GalleryPhoto {
@@ -16,107 +18,117 @@ interface GalleryPhoto {
 
 // Gallery categories for filtering
 const categories = [
-  { id: 'all', name: 'Все фото' },
-  { id: 'equipment', name: 'Оборудование' },
-  { id: 'interior', name: 'Интерьер' },
-  { id: 'team', name: 'Команда' },
-  { id: 'treatment', name: 'Лечение' },
+  { id: "all", name: "Все фото" },
+  { id: "equipment", name: "Оборудование" },
+  { id: "interior", name: "Интерьер" },
+  { id: "team", name: "Команда" },
+  { id: "treatment", name: "Лечение" },
 ];
 
 // Sample gallery data - replace with actual clinic photos
 const galleryPhotos: GalleryPhoto[] = [
   {
-    id: '1',
-    src: '/images/gallery/abclinic-day.jpg',
+    id: "1",
+    src: "/images/gallery/abclinic-day.jpg",
     thumbnail: `/images/gallery/abclinic-day-preview.jpg`,
-    alt: 'Фасад клиники днём',
-    category: 'interior',
-    title: 'Вход в клинику',
-    description: 'Фасад клиники в дневное время',
+    alt: "Фасад клиники днём",
+    category: "interior",
+    title: "Вход в клинику",
+    description: "Фасад клиники в дневное время",
   },
   {
-    id: '2',
-    src: '/images/gallery/abclinic-night.jpg',
+    id: "2",
+    src: "/images/gallery/abclinic-night.jpg",
     thumbnail: `/images/gallery/abclinic-night-preview.jpg`,
-    alt: 'Фасад клиники ночью',
-    category: 'interior',
-    title: 'Клиника ночью',
-    description: 'Современная вывеска и освещение',
+    alt: "Фасад клиники ночью",
+    category: "interior",
+    title: "Клиника ночью",
+    description: "Современная вывеска и освещение",
   },
   {
-    id: '4',
-    src: '/images/gallery/white-cab.jpg',
+    id: "4",
+    src: "/images/gallery/white-cab.jpg",
     thumbnail: `/images/gallery/white-cab-preview.jpg`,
-    alt: 'Светлый стоматологический кабинет',
-    category: 'interior',
-    title: 'Кабинет',
-    description: 'Чистота, стерильность и современность',
+    alt: "Светлый стоматологический кабинет",
+    category: "interior",
+    title: "Кабинет",
+    description: "Чистота, стерильность и современность",
   },
   {
-    id: '5',
-    src: '/images/gallery/big-cab.jpg',
+    id: "5",
+    src: "/images/gallery/big-cab.jpg",
     thumbnail: `/images/gallery/big-cab-preview.jpg`,
-    alt: 'Современное стоматологическое кресло',
-    category: 'equipment',
-    title: 'Стоматологическое оборудование',
-    description: 'Современное оснащение кабинета',
+    alt: "Современное стоматологическое кресло",
+    category: "equipment",
+    title: "Стоматологическое оборудование",
+    description: "Современное оснащение кабинета",
   },
   {
-    id: '6',
-    src: '/images/gallery/sterilization.jpg',
+    id: "6",
+    src: "/images/gallery/sterilization.jpg",
     thumbnail: `/images/gallery/sterilization-preview.jpg`,
-    alt: 'Стерилизационное оборудование',
-    category: 'equipment',
-    title: 'Стерилизация',
-    description: 'Надежная стерилизация инструментов',
+    alt: "Стерилизационное оборудование",
+    category: "equipment",
+    title: "Стерилизация",
+    description: "Надежная стерилизация инструментов",
   },
   {
-    id: '7',
-    src: '/images/gallery/nakladki-group.jpg',
+    id: "7",
+    src: "/images/gallery/nakladki-group.jpg",
     thumbnail: `/images/gallery/nakladki-group-preview.jpg`,
-    alt: 'Диагностические модели челюстей',
-    category: 'equipment',
-    title: 'Диагностические модели',
-    description: 'Модели зубов для точной диагностики и планирования',
+    alt: "Диагностические модели челюстей",
+    category: "equipment",
+    title: "Диагностические модели",
+    description: "Модели зубов для точной диагностики и планирования",
   },
   {
-    id: '8',
-    src: '/images/gallery/nakladki-estetics.png',
+    id: "8",
+    src: "/images/gallery/nakladki-estetics.png",
     thumbnail: `/images/gallery/nakladki-estetics-preview.jpg`,
-    alt: 'Зубные накладки на фоне растений',
-    category: 'treatment',
-    title: 'Эстетика лечения',
-    description: 'Качественные материалы и внимание к деталям',
+    alt: "Зубные накладки на фоне растений",
+    category: "treatment",
+    title: "Эстетика лечения",
+    description: "Качественные материалы и внимание к деталям",
   },
   {
-    id: '9',
-    src: '/images/gallery/ibrohimjon-azimov-cerificate.jpg',
+    id: "9",
+    src: "/images/gallery/ibrohimjon-azimov-cerificate.jpg",
     thumbnail: `/images/gallery/ibrohimjon-azimov-cerificate-preview.jpg`,
-    alt: 'Сертификат доктора',
-    category: 'team',
-    title: 'Профессионализм',
-    description: 'Сертифицированный специалист',
+    alt: "Сертификат доктора",
+    category: "team",
+    title: "Профессионализм",
+    description: "Сертифицированный специалист",
   },
   {
-    id: '10',
-    src: '/images/gallery/oda.jpg',
+    id: "10",
+    src: "/images/gallery/oda.jpg",
     thumbnail: `/images/gallery/oda-preview.jpg`,
-    alt: 'Участники международного имплантологического проекта',
-    category: 'team',
-    title: 'Проект ODA',
+    alt: "Участники международного имплантологического проекта",
+    category: "team",
+    title: "Проект ODA",
     description:
-      'Совместный проект с австралийскими хирургами по установке бесплатных имплантатов населению',
+      "Совместный проект с австралийскими хирургами по установке бесплатных имплантатов населению",
   },
 ];
 
 // Premium photo card component with preview optimization
-const PhotoCard = ({ photo, index, onClick, className = '' }) => {
+const PhotoCard = ({
+  photo,
+  index,
+  onClick,
+  className = "",
+}: {
+  photo: GalleryPhoto;
+  index: number;
+  onClick: (photo: GalleryPhoto) => void;
+  className?: string;
+}) => {
   const cardRef = useRef(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const isInView = useInView(cardRef, { once: true, amount: 0.2 });
 
   const getCardHeight = (index: number) => {
-    const heights = ['h-64', 'h-80', 'h-72', 'h-96', 'h-60', 'h-88', 'h-76', 'h-84'];
+    const heights = ["h-64", "h-80", "h-72", "h-96", "h-60", "h-88", "h-76", "h-84"];
     return heights[index % heights.length];
   };
 
@@ -143,7 +155,7 @@ const PhotoCard = ({ photo, index, onClick, className = '' }) => {
           src={photo.thumbnail}
           alt={photo.alt}
           className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
+            imageLoaded ? "opacity-100" : "opacity-0"
           }`}
           loading="lazy"
           onLoad={() => setImageLoaded(true)}
@@ -152,7 +164,7 @@ const PhotoCard = ({ photo, index, onClick, className = '' }) => {
             if (e.currentTarget.src === photo.thumbnail) {
               e.currentTarget.src = photo.src;
             } else {
-              e.currentTarget.src = '/images/placeholder-clinic.jpg';
+              e.currentTarget.src = "/images/logo.png";
             }
             setImageLoaded(true);
           }}
@@ -179,7 +191,19 @@ const PhotoCard = ({ photo, index, onClick, className = '' }) => {
 };
 
 // Premium lightbox modal component - fixed image repetition
-const Lightbox = ({ photo, isOpen, onClose, onNext, onPrev }) => {
+const Lightbox = ({
+  photo,
+  isOpen,
+  onClose,
+  onNext,
+  onPrev,
+}: {
+  photo: GalleryPhoto | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onNext: () => void;
+  onPrev: () => void;
+}) => {
   if (!isOpen || !photo) return null;
 
   return (
@@ -194,6 +218,7 @@ const Lightbox = ({ photo, isOpen, onClose, onNext, onPrev }) => {
         {/* Close button */}
         <button
           onClick={onClose}
+          aria-label="Закрыть просмотр фото"
           className="absolute top-6 right-6 w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-colors z-10"
         >
           <X size={24} className="text-white" />
@@ -205,6 +230,7 @@ const Lightbox = ({ photo, isOpen, onClose, onNext, onPrev }) => {
             e.stopPropagation();
             onPrev();
           }}
+          aria-label="Предыдущее фото"
           className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-colors z-10"
         >
           <ArrowLeft size={24} className="text-white" />
@@ -215,6 +241,7 @@ const Lightbox = ({ photo, isOpen, onClose, onNext, onPrev }) => {
             e.stopPropagation();
             onNext();
           }}
+          aria-label="Следующее фото"
           className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-colors z-10"
         >
           <ArrowRight size={24} className="text-white" />
@@ -229,8 +256,8 @@ const Lightbox = ({ photo, isOpen, onClose, onNext, onPrev }) => {
           transition={{ duration: 0.3 }}
           onClick={(e) => e.stopPropagation()}
           style={{
-            maxWidth: 'calc(100vw - 120px)',
-            maxHeight: 'calc(100vh - 120px)',
+            maxWidth: "calc(100vw - 120px)",
+            maxHeight: "calc(100vh - 120px)",
           }}
         >
           {/* Image with optimal sizing */}
@@ -240,13 +267,13 @@ const Lightbox = ({ photo, isOpen, onClose, onNext, onPrev }) => {
               alt={photo.alt}
               className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
               style={{
-                width: 'auto',
-                height: 'auto',
-                maxWidth: '100%',
-                maxHeight: '100%',
+                width: "auto",
+                height: "auto",
+                maxWidth: "100%",
+                maxHeight: "100%",
               }}
               onError={(e) => {
-                e.currentTarget.src = '/images/placeholder-clinic.jpg';
+                e.currentTarget.src = "/images/logo.png";
               }}
             />
 
@@ -272,13 +299,13 @@ const PhotoGallerySection: React.FC = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.1 });
 
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [lightboxPhoto, setLightboxPhoto] = useState<GalleryPhoto | null>(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   // Filter photos based on selected category
   const filteredPhotos =
-    selectedCategory === 'all'
+    selectedCategory === "all"
       ? galleryPhotos
       : galleryPhotos.filter((photo) => photo.category === selectedCategory);
 
@@ -293,13 +320,13 @@ const PhotoGallerySection: React.FC = () => {
     setLightboxPhoto(null);
   };
 
-  const navigateLightbox = (direction: 'next' | 'prev') => {
+  const navigateLightbox = (direction: "next" | "prev") => {
     if (!lightboxPhoto) return;
 
     const currentIndex = filteredPhotos.findIndex((photo) => photo.id === lightboxPhoto.id);
     let newIndex;
 
-    if (direction === 'next') {
+    if (direction === "next") {
       newIndex = currentIndex === filteredPhotos.length - 1 ? 0 : currentIndex + 1;
     } else {
       newIndex = currentIndex === 0 ? filteredPhotos.length - 1 : currentIndex - 1;
@@ -319,7 +346,7 @@ const PhotoGallerySection: React.FC = () => {
 
         {/* Premium floating gradient */}
         <motion.div
-          className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-blue-500/5 blur-3xl"
+          className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-forest-500/5 blur-3xl"
           animate={{
             y: [0, 30, 0],
             x: [0, -30, 0],
@@ -328,7 +355,7 @@ const PhotoGallerySection: React.FC = () => {
           transition={{
             duration: 20,
             repeat: Infinity,
-            repeatType: 'reverse',
+            repeatType: "reverse",
           }}
         />
 
@@ -354,7 +381,7 @@ const PhotoGallerySection: React.FC = () => {
               <motion.div
                 className="h-px w-0 bg-gradient-to-r from-white/5 via-white/80 to-white/5 mt-4"
                 initial={{ width: 0 }}
-                animate={isInView ? { width: '140px' } : { width: 0 }}
+                animate={isInView ? { width: "140px" } : { width: 0 }}
                 transition={{ duration: 1, delay: 0.5 }}
               />
             </motion.div>
@@ -377,14 +404,14 @@ const PhotoGallerySection: React.FC = () => {
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.7, delay: 0.4 }}
           >
-            {categories.map((category, index) => (
+            {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-6 py-3 rounded-full font-medium transition-all duration-300 backdrop-blur-sm border ${
                   selectedCategory === category.id
-                    ? 'bg-white text-primary-900 border-white'
-                    : 'bg-white/10 text-white border-white/20 hover:bg-white/20 hover:border-white/40'
+                    ? "bg-white text-primary-900 border-white"
+                    : "bg-white/10 text-white border-white/20 hover:bg-white/20 hover:border-white/40"
                 }`}
               >
                 {category.name}
@@ -435,8 +462,8 @@ const PhotoGallerySection: React.FC = () => {
         photo={lightboxPhoto}
         isOpen={isLightboxOpen}
         onClose={closeLightbox}
-        onNext={() => navigateLightbox('next')}
-        onPrev={() => navigateLightbox('prev')}
+        onNext={() => navigateLightbox("next")}
+        onPrev={() => navigateLightbox("prev")}
       />
     </>
   );

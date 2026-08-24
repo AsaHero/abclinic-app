@@ -1,8 +1,10 @@
+"use client";
+
 // src/components/timeline/Timeline.tsx - New Structure
-import { useState, useRef, useEffect } from 'react';
-import { motion, useAnimation } from 'framer-motion';
-import { TimelineEntry } from '../../types/timelineData';
-import TimelineYears from './TimelineYears';
+import { useState, useRef, useEffect } from "react";
+import { motion, useAnimation } from "framer-motion";
+import { TimelineEntry } from "@/types/timelineData";
+import TimelineYears from "./TimelineYears";
 
 interface TimelineProps {
   entries: TimelineEntry[];
@@ -15,7 +17,6 @@ const TimelineItem = ({
   entry,
   index,
   activeIndex,
-  totalItems
 }: {
   entry: TimelineEntry;
   index: number;
@@ -35,7 +36,7 @@ const TimelineItem = ({
         zIndex: isActive ? 10 : 1,
       }}
       transition={{
-        x: { type: 'spring', stiffness: 300, damping: 30 },
+        x: { type: "spring", stiffness: 300, damping: 30 },
         opacity: { duration: 0.5 },
         scale: { duration: 0.5 },
       }}
@@ -44,22 +45,25 @@ const TimelineItem = ({
         <div className="max-h-[600px] md:max-h-[700px] w-full overflow-hidden">
           {/* Background image container */}
           <div className="relative w-full h-full aspect-[16/9] md:aspect-[21/9] overflow-hidden">
-
             {/* Image with enhanced zoom effect - NEVER UNMOUNTS */}
             <motion.div
               className="w-full h-full"
-              animate={isActive ? {
-                scale: [1.05, 1.12, 1.05],
-                filter: ['brightness(0.9)', 'brightness(1)', 'brightness(0.9)'],
-              } : {
-                scale: 1.05,
-                filter: 'brightness(0.9)'
-              }}
+              animate={
+                isActive
+                  ? {
+                      scale: [1.05, 1.12, 1.05],
+                      filter: ["brightness(0.9)", "brightness(1)", "brightness(0.9)"],
+                    }
+                  : {
+                      scale: 1.05,
+                      filter: "brightness(0.9)",
+                    }
+              }
               transition={{
                 duration: 15,
-                ease: 'easeInOut',
+                ease: "easeInOut",
                 repeat: isActive ? Infinity : 0,
-                repeatType: 'reverse',
+                repeatType: "reverse",
                 times: [0, 0.5, 1],
               }}
             >
@@ -70,8 +74,8 @@ const TimelineItem = ({
                 loading={index <= 1 ? "eager" : "lazy"}
                 style={{
                   // Keep image loaded even when not active
-                  visibility: 'visible',
-                  position: 'relative'
+                  visibility: "visible",
+                  position: "relative",
                 }}
               />
             </motion.div>
@@ -86,7 +90,7 @@ const TimelineItem = ({
               <>
                 <motion.div
                   className="absolute w-2 h-2 rounded-full bg-white/40"
-                  style={{ top: '10%', left: '5%' }}
+                  style={{ top: "10%", left: "5%" }}
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.8, delay: 0.6 }}
@@ -95,18 +99,18 @@ const TimelineItem = ({
                     className="w-full h-full rounded-full bg-white/40"
                     animate={{
                       boxShadow: [
-                        '0 0 0px rgba(255,255,255,0.2)',
-                        '0 0 20px rgba(255,255,255,0.4)',
-                        '0 0 0px rgba(255,255,255,0.2)',
+                        "0 0 0px rgba(255,255,255,0.2)",
+                        "0 0 20px rgba(255,255,255,0.4)",
+                        "0 0 0px rgba(255,255,255,0.2)",
                       ],
                     }}
-                    transition={{ duration: 4, repeat: Infinity, repeatType: 'reverse' }}
+                    transition={{ duration: 4, repeat: Infinity, repeatType: "reverse" }}
                   />
                 </motion.div>
 
                 <motion.div
                   className="absolute w-1 h-1 rounded-full bg-white/40"
-                  style={{ top: '30%', left: '80%' }}
+                  style={{ top: "30%", left: "80%" }}
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.8, delay: 0.8 }}
@@ -114,7 +118,7 @@ const TimelineItem = ({
 
                 <motion.div
                   className="absolute w-1 h-1 rounded-full bg-white/40"
-                  style={{ top: '70%', left: '10%' }}
+                  style={{ top: "70%", left: "10%" }}
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.8, delay: 1.0 }}
@@ -154,7 +158,7 @@ const TimelineItem = ({
                 {/* Separator line */}
                 <motion.div
                   className="h-px bg-gradient-to-r from-white/20 via-white/60 to-white/20"
-                  animate={isActive ? { width: '80px', opacity: 1 } : { width: 0, opacity: 0 }}
+                  animate={isActive ? { width: "80px", opacity: 1 } : { width: 0, opacity: 0 }}
                   transition={{ duration: 0.8, delay: isActive ? 0.5 : 0 }}
                 />
 
@@ -186,7 +190,7 @@ const TimelineItem = ({
 };
 
 const Timeline = ({ entries, activeIndex, setActiveIndex }: TimelineProps) => {
-  const [direction, setDirection] = useState<number>(0);
+  const [, setDirection] = useState<number>(0);
   const timelineRef = useRef<HTMLDivElement>(null);
   const progressControls = useAnimation();
 
@@ -200,7 +204,7 @@ const Timeline = ({ entries, activeIndex, setActiveIndex }: TimelineProps) => {
     setActiveIndex(selectedIndex);
 
     if (timelineRef.current && window.innerWidth < 1680) {
-      timelineRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      timelineRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -260,7 +264,7 @@ const Timeline = ({ entries, activeIndex, setActiveIndex }: TimelineProps) => {
           >
             <div
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === activeIndex ? 'bg-white' : 'bg-white/30'
+                index === activeIndex ? "bg-white" : "bg-white/30"
               }`}
             />
 
@@ -272,7 +276,7 @@ const Timeline = ({ entries, activeIndex, setActiveIndex }: TimelineProps) => {
                 animate={{ scale: 1.5 }}
                 exit={{ scale: 0 }}
                 transition={{ duration: 0.3 }}
-                style={{ opacity: 0.5, filter: 'blur(2px)' }}
+                style={{ opacity: 0.5, filter: "blur(2px)" }}
               />
             )}
           </motion.button>

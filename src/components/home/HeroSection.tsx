@@ -1,276 +1,194 @@
-// src/components/sections/HeroSection.tsx
-import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Phone } from 'lucide-react';
+"use client";
 
-// Split text animation helper component
-const SplitText = ({ text, className, delay = 0 }) => {
-  return (
-    <div className="overflow-hidden">
-      <motion.div
-        className={className}
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{
-          duration: 1.2,
-          ease: [0.25, 0.1, 0, 1],
-          delay: delay,
-        }}
-      >
-        {text}
-      </motion.div>
-    </div>
-  );
-};
+// src/components/home/HeroSection.tsx
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { motion, useScroll, useTransform } from "framer-motion";
+import BookingButton from "@/components/common/BookingButton";
+import { ArrowRight } from "lucide-react";
 
-const SplitTextOutline = ({ text, className, delay = 0 }) => {
-  const [visibleChars, setVisibleChars] = useState(0);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const interval = setInterval(() => {
-        setVisibleChars((prev) => {
-          if (prev >= text.length) {
-            clearInterval(interval);
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 50);
-
-      return () => clearInterval(interval);
-    }, delay * 1000);
-
-    return () => clearTimeout(timer);
-  }, [text, delay]);
-
-  return (
-    <div
-      className={className}
-      style={{
-        WebkitTextStroke: '2px white',
-        WebkitTextFillColor: 'transparent',
-        color: 'transparent',
-      }}
-    >
-      {text.split('').map((char, index) => (
-        <span
-          key={index}
-          className={`inline-block transition-opacity duration-300 ${
-            index < visibleChars ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          {char}
-        </span>
-      ))}
-    </div>
-  );
-};
-
-// Floating accent component
-const FloatingAccent = ({ x, y, delay, size = 4, color = 'bg-white' }) => (
-  <motion.div
-    className={`absolute w-${size} h-${size} ${color} opacity-20 rounded-full blur-sm`}
-    style={{ x, y }}
-    initial={{ opacity: 0 }}
-    animate={{ opacity: [0, 0.8, 0] }}
-    transition={{
-      duration: 8,
-      delay,
-      repeat: Infinity,
-      repeatType: 'reverse',
-    }}
-  />
-);
-
-function translateValueWithConstraints<T>(
-  value: MotionValue<number>,
-  input: number[],
-  output: T[]
-): MotionValue<T> {
-  return useTransform(value, input, output);
+interface HeroSlide {
+  id: string;
+  photo: string;
+  alt: string;
 }
 
-const HeroSection = () => {
-  const sectionRef = useRef(null);
-  const [isMounted, setIsMounted] = useState(false);
-  const mouseRef = useRef({ x: 0, y: 0 });
+// Real photos live in /public/images/hero/ — today only the founder's
+// portrait is wired up. Add more entries here once the owner sends
+// team/family photos in the same style (transparent-background cutout,
+// smiling, same crop) — the rotation logic already supports N slides.
+const heroSlides: HeroSlide[] = [{ id: "founder", photo: "/images/hero/founder.png", alt: "Иброхимжон Азимов" }];
 
-  // Enhanced parallax effect setup
+const EASE = [0.25, 0.1, 0, 1] as const;
+
+const HeroSection = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [activeSlide] = useState(0);
+  // Starts false (placeholder) rather than relying on the <img>'s onError —
+  // for an already-broken src, the browser fires that native error event
+  // while parsing the server-rendered HTML, before React hydrates and
+  // attaches the listener, so it's silently missed. A plain client-side
+  // preload check sidesteps the race entirely.
+  const [photoReady, setPhotoReady] = useState(false);
+
+  useEffect(() => {
+    const img = new window.Image();
+    img.onload = () => setPhotoReady(true);
+    img.onerror = () => setPhotoReady(false);
+    img.src = heroSlides[0].photo;
+  }, []);
+
+  // Scroll-linked depth: the portrait scales, lifts, and tilts in 3D as the
+  // hero scrolls past — perspective + rotateY instead of a 2D translate, so
+  // it actually reads as a 3D move rather than a slide. Pure CSS transforms
+  // driven by framer-motion, no WebGL/Canvas (see /history for why that
+  // route was abandoned this session).
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ['start start', 'end start'],
+    offset: ["start start", "end start"],
   });
+  const photoY = useTransform(scrollYProgress, [0, 1], ["0%", "16%"]);
+  const photoScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+  const photoRotateY = useTransform(scrollYProgress, [0, 1], [0, 8]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
 
-  const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '20%']);
-  // REMOVED problematic opacity and scale transforms that cause white flashes
-  // const contentOpacity = translateValueWithConstraints(scrollYProgress, [0, 0.7], [1, 0]);
-  // const contentScale = translateValueWithConstraints(scrollYProgress, [0, 0.7], [1, 0.95]);
-  const blur = translateValueWithConstraints(scrollYProgress, [0, 0.7], [0, 5]);
-
-  // Handle mouse movement for subtle parallax effects
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseRef.current = {
-        x: (e.clientX / window.innerWidth - 0.5) * 20,
-        y: (e.clientY / window.innerHeight - 0.5) * 10,
-      };
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  // Trigger mount animations after initial render
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Smooth scroll to next section
-  const scrollToNext = () => {
-    const nextSection = document.getElementById('timeline-section');
-    if (nextSection) {
-      nextSection.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    }
-  };
+  const slide = heroSlides[activeSlide];
 
   return (
-    <section ref={sectionRef} className="relative w-full h-screen overflow-hidden bg-primary-900">
-      {/* Decorative elements */}
-      <FloatingAccent x={-20} y={100} delay={0.5} size={16} color="bg-blue-400" />
-      <FloatingAccent x={200} y={-150} delay={2} size={12} color="bg-white" />
-      <FloatingAccent x={-200} y={200} delay={3.5} size={10} color="bg-indigo-300" />
+    <section ref={sectionRef} className="relative h-screen w-full overflow-hidden bg-primary-900">
+      {/* Portrait — the visual centerpiece */}
+      <div className="absolute inset-0" style={{ perspective: "1400px" }}>
+        {/* Backlight glow behind the portrait — was amber (read as an odd
+            yellow stain behind him, per owner feedback); switched to the
+            site's own forest accent so it reads as an intentional brand
+            glow instead of a lighting artifact. */}
+        <div className="absolute right-[5%] bottom-0 h-[70%] w-[45%] rounded-full bg-forest-500/15 blur-[100px] md:right-[15%]" />
+        <motion.div
+          className="absolute right-0 bottom-0 h-[78%] w-full origin-bottom md:top-[8%] md:h-auto md:w-[60%]"
+          style={{
+            y: photoY,
+            scale: photoScale,
+            rotateY: photoRotateY,
+            // Fade the photo's own left edge into the background (alpha,
+            // not a color wash) so it blends smoothly without tinting the
+            // visible face/clothing — the overlay gradients below handle
+            // text-side darkening only, scoped away from the portrait.
+            maskImage: "linear-gradient(to left, black 88%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to left, black 88%, transparent 100%)",
+          }}
+        >
+          {photoReady ? (
+            <Image
+              src={slide.photo}
+              alt={slide.alt}
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 60vw"
+              className="object-contain object-bottom md:object-cover md:object-top"
+              draggable={false}
+            />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-t from-white/[0.05] via-white/[0.02] to-transparent" />
+          )}
+        </motion.div>
+      </div>
 
-      {/* Background with enhanced parallax effect */}
+      {/* Gradients so the headline reads against the dark background — scoped
+          to the text side (left ~45%) so they never wash color across the
+          portrait itself; the photo's own left-edge mask above handles its
+          blend into the background. */}
+      <div className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-primary-900 from-0% via-primary-900/55 via-20% to-transparent to-45% md:to-40%" />
+      <div className="absolute inset-x-0 bottom-0 h-[18%] bg-gradient-to-t from-primary-900 to-transparent" />
+
       <motion.div
-        className="absolute inset-0 w-full h-full z-0"
-        style={{
-          y: backgroundY,
-          filter: `blur(${blur}px)`,
-        }}
+        className="relative z-10 flex h-full w-full items-center"
+        style={{ opacity: contentOpacity, y: contentY }}
       >
-        <div className="relative w-full h-full">
-          {/* Hero background with premium treatment */}
-          <div
-            className="absolute inset-0 bg-cover bg-center w-full h-full"
-            style={{ backgroundImage: `url('/images/hero.png')` }}
-          />
+        <div className="container mx-auto px-6 md:px-12">
+          <div className="max-w-2xl">
+            <motion.div
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 backdrop-blur-sm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: EASE }}
+            >
+              <span className="size-1.5 rounded-full bg-amber-400" />
+              <span className="text-xs font-medium tracking-[0.15em] text-white/70 uppercase">
+                Стоматология восстановления · для взрослых
+              </span>
+            </motion.div>
 
-          {/* Enhanced gradient overlays for depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-primary-900/95 via-primary-900/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-900/70 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-900/30 via-transparent to-primary-900/50" />
-        </div>
-      </motion.div>
+            <motion.h1
+              className="font-arista-bold text-4xl leading-[0.95] text-white uppercase md:text-5xl lg:text-6xl"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.1, ease: EASE }}
+            >
+              Восстанавливаем
+            </motion.h1>
+            <motion.p
+              className="font-arista-light mt-1 text-2xl text-amber-400 italic md:text-3xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.25, ease: EASE }}
+            >
+              даже сильно разрушенные зубы
+            </motion.p>
 
-      {/* Subtle animated overlay pattern */}
-      <div className="absolute inset-0 bg-[url('/images/pattern.svg')] bg-repeat opacity-5 mix-blend-soft-light" />
+            <motion.div
+              className="mt-8 flex items-center gap-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              <div>
+                <div className="font-arista-bold text-3xl text-white md:text-4xl">1936</div>
+                <div className="text-xs tracking-wider text-white/50 uppercase">начало династии</div>
+              </div>
+              <div className="h-10 w-px bg-white/15" />
+              <div>
+                <div className="font-arista-bold text-3xl text-white md:text-4xl">3</div>
+                <div className="text-xs tracking-wider text-white/50 uppercase">поколения врачей</div>
+              </div>
+            </motion.div>
 
-      {/* Content container - REMOVED problematic style animations */}
-      <div className="relative h-full w-full z-10">
-        <div className="container mx-auto px-4 h-full flex flex-col justify-center items-center text-white">
-          <div className="max-w-4xl text-center">
-            {/* Enhanced staggered animation for content */}
-            <motion.div className="flex flex-col items-center gap-6">
-              {/* Premium tag line */}
-              <motion.div
-                className="mb-4 overflow-hidden"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1, delay: 0.1 }}
-              ></motion.div>
-
-              {/* Title with enhanced reveal animation */}
-              <SplitTextOutline
-                text="abclinic"
-                className="text-5xl md:text-8xl lg:text-9xl font-arista-regular mb-2 mt-8 tracking-normal"
-                delay={0.2}
-              />
-
-              {/* Enhanced subtitle with reveal animation */}
-              <SplitText
-                text="cоздай историю"
-                className="text-xl md:text-4xl lg:text-5xl font-arista-extralight my-8 text-white/90 tracking-wide"
-                delay={0.3}
-              />
-
-              {/* Description text */}
-              <motion.p
-                className="max-w-xl text-base md:text-lg font-light text-white/70 mb-8 leading-relaxed flex "
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.5 }}
+            <motion.div
+              className="mt-10"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.55 }}
+            >
+              <BookingButton
+                glass
+                className="w-fit rounded-full px-7 py-4 text-sm font-medium text-white hover:scale-[1.03]"
               >
-                abclinic.uz — семейная стоматология, вдохновлённая природой, где мы объединяем
-                наследие трёх поколений, цифровые технологии и минимализм в каждой детали.
-              </motion.p>
-
-              {/* Enhanced CTA Button group */}
-              <motion.div
-                className="flex flex-col w-full sm:flex-row gap-4 items-center justify-center"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-              >
-                <Button
-                  asChild
-                  className="bg-white hover:bg-white/90 text-primary-900 rounded-full w-1/2 sm:w-1/3 px-6 py-6 text-base font-medium transition-all duration-300 hover:shadow-lg group overflow-hidden relative"
-                >
-                  <Link to="/contact" className="flex items-center gap-2 ">
-                    <span>Записаться</span>
-                    <motion.div className="relative" initial={{ x: 0 }} whileHover={{ x: 5 }}>
-                      <ArrowRight size={18} className="stroke-2" />
-                    </motion.div>
-                    <motion.div
-                      className="absolute inset-0 bg-white/20"
-                      initial={{ x: '-100%' }}
-                      whileHover={{ x: '100%' }}
-                      transition={{ duration: 0.6 }}
-                    />
-                  </Link>
-                </Button>
-
-                <Button
-                  asChild
-                  variant="outline"
-                  className="border border-white/30 text-white bg-transparent hover:bg-white/10 rounded-full w-1/2 sm:w-1/3 py-6 text-base font-medium backdrop-blur-sm"
-                >
-                  <Link to="/services">Наши услуги</Link>
-                </Button>
-              </motion.div>
+                <span>Разобрать случай</span>
+                <ArrowRight size={16} className="stroke-2 transition-transform group-hover:translate-x-1" />
+              </BookingButton>
             </motion.div>
           </div>
         </div>
 
-        {/* Scroll indicator with premium animation */}
-        <motion.div
-          className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center"
+        {/* Minimal scroll cue — no wordy call-to-action, just a hint */}
+        <motion.button
+          type="button"
+          onClick={() =>
+            document.getElementById("fit-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+          className="group absolute bottom-10 left-6 flex cursor-pointer items-center gap-3 text-white/40 transition-colors hover:text-white/70 md:left-12"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1, duration: 0.8 }}
         >
-          <motion.button
-            onClick={scrollToNext}
-            className="group flex flex-col items-center justify-center space-y-2 cursor-pointer"
-            whileHover={{ y: -5 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-          >
-            <span className="text-white/60 text-sm font-light tracking-wider group-hover:text-white/90 transition-colors">
-              Наша история
-            </span>
-            <motion.div
-              className="w-[1px] h-10 bg-white/30 origin-top"
-              animate={{ scaleY: [0.8, 1.2, 0.8] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          </motion.button>
-        </motion.div>
-      </div>
+          <span className="text-xs tracking-[0.3em] uppercase">Скролл</span>
+          <motion.div
+            className="h-px w-10 origin-left bg-white/30 group-hover:bg-white/60"
+            animate={{ scaleX: [0.6, 1, 0.6] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </motion.button>
+      </motion.div>
     </section>
   );
 };

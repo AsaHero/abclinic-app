@@ -1,76 +1,76 @@
-// src/components/sections/ContactMapSection.tsx
-import React, { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
-import { MapPin, Clock, Phone, Mail, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+"use client";
 
-// Contact info item component with premium styling
-const ContactItem = ({ icon, title, children, delay = 0 }) => {
-  return (
-    <motion.div
-      className="space-y-2"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, delay }}
-    >
-      <h3 className="uppercase text-gray-500 text-sm font-medium tracking-wider mb-2">{title}</h3>
-      <div className="flex items-start text-primary-900 font-medium">
-        {icon}
-        {children}
-      </div>
-    </motion.div>
-  );
-};
+// src/components/home/ContactMapSection.tsx
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { MapPin, Clock, Phone } from "lucide-react";
+import BookingButton from "@/components/common/BookingButton";
 
-const ContactMapSection: React.FC = () => {
-  const sectionRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: true, amount: 0.2 });
+const ContactMapSection = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
 
   return (
-    <section ref={sectionRef} className="w-full mx-auto bg-white relative">
-      {/* Premium section divider */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent z-10" />
+    <section ref={ref} className="w-full bg-primary-900 py-24 md:py-32">
+      <div className="mx-auto grid max-w-screen-2xl grid-cols-1 items-center gap-12 px-4 md:grid-cols-2 md:gap-16 md:px-8 lg:px-12">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="font-inter text-3xl leading-tight font-bold text-white md:text-4xl">
+            Разберём ваш случай на консультации
+          </h2>
+          <p className="mt-5 max-w-md text-base leading-relaxed text-gray-400">
+            Фотопротокол, честный план и стоимость — до начала любого лечения.
+          </p>
 
-      <div className="h-[500px] lg:h-[500px] w-full relative">
-        {/* Map container with premium styling */}
-        <div className="absolute inset-0 w-full h-full overflow-hidden">
-          {/* Yandex Maps iframe */}
+          <div className="mt-9 flex flex-wrap items-center gap-4">
+            <BookingButton
+              glass
+              className="w-fit rounded-full px-7 py-4 text-sm font-medium text-white hover:scale-[1.03]"
+            >
+              <span>Разобрать случай</span>
+            </BookingButton>
+            <a
+              href="tel:+99895122-88-55"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-4 text-sm font-medium text-white backdrop-blur-sm hover:bg-white/10"
+            >
+              <Phone size={16} />
+              +998 95 122-88-55
+            </a>
+          </div>
+
+          <div className="mt-10 flex flex-col gap-3 text-sm text-gray-400">
+            <div className="flex items-center gap-2.5">
+              <MapPin size={16} className="shrink-0 text-white/40" />
+              Ташкент, ул. Нукус, 88
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Clock size={16} className="shrink-0 text-white/40" />
+              Пн–Сб, 09:00–18:00
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="h-[380px] w-full overflow-hidden rounded-3xl border border-white/10 md:h-[440px]"
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.15 }}
+        >
           <iframe
             src="https://yandex.ru/map-widget/v1/?z=12&ol=biz&oid=9426831655"
             width="100%"
             height="100%"
-            style={{ border: 0, filter: 'grayscale(0.3) contrast(1.1)' }}
+            style={{ border: 0, filter: "grayscale(0.3) contrast(1.1)" }}
             allowFullScreen
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
             title="Clinic Location"
-            className="z-0"
           />
-
-          {/* Optional map overlay for more premium feel */}
-          <div className="absolute inset-0 bg-gradient-to-t from-transparent to-primary-900/5 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-900/10 to-transparent pointer-events-none"></div>
-        </div>
-
-        {/* Premium decorative element */}
-        <motion.div
-          className="absolute -bottom-6 right-[10%] w-12 h-12 bg-blue-500 rounded-full opacity-0"
-          animate={{
-            opacity: [0, 0.2, 0],
-            scale: [0.8, 1.5, 0.8],
-            y: [0, -20, 0],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            repeatType: 'loop',
-          }}
-          style={{ filter: 'blur(20px)' }}
-        />
+        </motion.div>
       </div>
-
-      {/* Premium flourish bottom border */}
-      <div className="h-1 w-full bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
     </section>
   );
 };

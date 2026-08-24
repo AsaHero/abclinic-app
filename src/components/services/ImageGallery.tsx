@@ -1,7 +1,9 @@
+"use client";
+
 // components/services/ImageGallery.tsx
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Expand } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, Expand } from "lucide-react";
 
 interface ImageGalleryProps {
   images: string[];
@@ -12,14 +14,28 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, onModalChange }) =>
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  if (!images || images.length === 0) return null;
-
   // Handle modal state changes
   useEffect(() => {
     if (onModalChange) {
       onModalChange(isModalOpen);
     }
   }, [isModalOpen, onModalChange]);
+
+  // Handle escape key press
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isModalOpen) {
+        closeModal();
+      }
+    };
+
+    if (isModalOpen) {
+      document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
+    }
+  }, [isModalOpen]);
+
+  if (!images || images.length === 0) return null;
 
   const nextImage = () => {
     setCurrentIndex((prev) => (prev + 1) % images.length);
@@ -37,27 +53,13 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, onModalChange }) =>
     setIsModalOpen(false);
   };
 
-  // Handle escape key press
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isModalOpen) {
-        closeModal();
-      }
-    };
-
-    if (isModalOpen) {
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
-    }
-  }, [isModalOpen]);
-
   return (
     <>
-      <div className="bg-gradient-to-br from-[#1E2329] to-[#252A32] rounded-xl overflow-hidden shadow-xl shadow-black/20">
+      <div className="bg-gradient-to-br from-[#002a27] to-[#003932] rounded-xl overflow-hidden shadow-xl shadow-black/20">
         <div className="h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
         <div className="p-4">
           <h3 className="text-lg font-medium mb-3 text-white">Галерея</h3>
-          
+
           <div className="relative">
             {/* Image Container - Reduced aspect ratio */}
             <div className="relative aspect-[16/10] rounded-lg overflow-hidden bg-gray-800 group">
@@ -74,10 +76,11 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, onModalChange }) =>
                   transition={{ duration: 0.3 }}
                 />
               </AnimatePresence>
-              
+
               {/* Expand button */}
               <button
                 onClick={openModal}
+                aria-label="Открыть изображение на весь экран"
                 className="absolute top-2 right-2 w-6 h-6 bg-black/60 backdrop-blur-sm text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
               >
                 <Expand size={12} />
@@ -88,12 +91,14 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, onModalChange }) =>
                 <>
                   <button
                     onClick={prevImage}
+                    aria-label="Предыдущее изображение"
                     className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-black/60 backdrop-blur-sm text-white rounded-full flex items-center justify-center hover:bg-black/80 transition-colors"
                   >
                     <ChevronLeft size={12} />
                   </button>
                   <button
                     onClick={nextImage}
+                    aria-label="Следующее изображение"
                     className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 bg-black/60 backdrop-blur-sm text-white rounded-full flex items-center justify-center hover:bg-black/80 transition-colors"
                   >
                     <ChevronRight size={12} />
@@ -107,7 +112,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, onModalChange }) =>
               <span className="text-xs text-gray-400">
                 {currentIndex + 1} из {images.length}
               </span>
-              
+
               {/* Dots navigation */}
               {images.length > 1 && images.length <= 5 && (
                 <div className="flex space-x-1">
@@ -115,8 +120,10 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, onModalChange }) =>
                     <button
                       key={index}
                       onClick={() => setCurrentIndex(index)}
+                      aria-label={`Перейти к изображению ${index + 1}`}
+                      aria-current={index === currentIndex}
                       className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                        index === currentIndex ? 'bg-blue-400' : 'bg-gray-600'
+                        index === currentIndex ? "bg-forest-400" : "bg-gray-600"
                       }`}
                     />
                   ))}
@@ -149,10 +156,11 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, onModalChange }) =>
                 alt={`Изображение ${currentIndex + 1}`}
                 className="max-w-full max-h-full object-contain rounded-lg"
               />
-              
+
               {/* Close button */}
               <button
                 onClick={closeModal}
+                aria-label="Закрыть изображение"
                 className="absolute top-4 right-4 w-10 h-10 bg-black/60 backdrop-blur-sm text-white rounded-full flex items-center justify-center hover:bg-black/80 transition-colors text-xl font-light"
               >
                 ×
@@ -166,6 +174,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, onModalChange }) =>
                       e.stopPropagation();
                       prevImage();
                     }}
+                    aria-label="Предыдущее изображение"
                     className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/60 backdrop-blur-sm text-white rounded-full flex items-center justify-center hover:bg-black/80 transition-colors"
                   >
                     <ChevronLeft size={20} />
@@ -175,6 +184,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, onModalChange }) =>
                       e.stopPropagation();
                       nextImage();
                     }}
+                    aria-label="Следующее изображение"
                     className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/60 backdrop-blur-sm text-white rounded-full flex items-center justify-center hover:bg-black/80 transition-colors"
                   >
                     <ChevronRight size={20} />

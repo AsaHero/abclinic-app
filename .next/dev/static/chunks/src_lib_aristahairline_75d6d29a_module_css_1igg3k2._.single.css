@@ -1,0 +1,25 @@
+/* [project]/src/lib/aristahairline_75d6d29a.module.css [app-client] (css) */
+@font-face {
+  font-family: aristaHairline;
+  src: url("../media/AristaPro_Hairline-s.p.33dspspzgmv-7.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: aristaHairline Fallback;
+  src: local(Arial);
+  ascent-override: 92.26%;
+  descent-override: 26.47%;
+  line-gap-override: 0.0%;
+  size-adjust: 92.03%;
+}
+
+.aristahairline_75d6d29a-module__-apLFq__className {
+  font-family: aristaHairline, aristaHairline Fallback;
+}
+
+.aristahairline_75d6d29a-module__-apLFq__variable {
+  --font-arista-hairline: "aristaHairline", "aristaHairline Fallback";
+}
+
+/*# sourceMappingURL=src_lib_aristahairline_75d6d29a_module_css_1igg3k2._.single.css.map*/
