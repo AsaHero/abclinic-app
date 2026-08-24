@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { getTeamMembers } from "@/lib/team/queries";
 import TeamPageBody from "@/components/team/TeamPageBody";
 
+// DB-backed and admin-managed — must render per-request, not get frozen at
+// build time (the Docker build runs against an empty data/ dir).
+export const dynamic = "force-dynamic";
+
 const SITE = "https://abclinic.uz";
 
 export const metadata: Metadata = {

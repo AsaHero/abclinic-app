@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { getCategories } from "@/lib/services/queries";
 import ContactPageBody from "@/components/contact/ContactPageBody";
 
+// categories come from the admin-managed DB — must render per-request, not
+// get frozen at build time (the Docker build runs against an empty data/ dir).
+export const dynamic = "force-dynamic";
+
 const SITE = "https://abclinic.uz";
 const OG_IMAGE = `${SITE}/images/hero.png`;
 

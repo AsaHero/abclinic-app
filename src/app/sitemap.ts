@@ -4,6 +4,11 @@ import { getAllPackages } from "@/types/packageData";
 import { getTeamMembers } from "@/lib/team/queries";
 import { getPublishedBlogPosts } from "@/lib/blog/queries";
 
+// services/team/blog rows come from the admin-managed DB — must render
+// per-request, not get frozen at build time (the Docker build runs against
+// an empty data/ dir).
+export const dynamic = "force-dynamic";
+
 const SITE = "https://abclinic.uz";
 
 export default function sitemap(): MetadataRoute.Sitemap {

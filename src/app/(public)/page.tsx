@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import HomePageBody from "@/components/home/HomePageBody";
 import { getBeforeAfterCases } from "@/lib/services/queries";
 
+// before/after cases come from the admin-managed DB — must render
+// per-request, not get frozen at build time (the Docker build runs against
+// an empty data/ dir).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "abclinic.uz — стоматология для взрослых в Ташкенте",
   description:
